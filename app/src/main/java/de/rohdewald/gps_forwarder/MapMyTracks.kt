@@ -15,10 +15,6 @@ import kotlin.concurrent.timerTask
 import java.text.SimpleDateFormat
 
 
-typealias PostMap = HashMap<String, String>
-
-
-
 abstract class SendCommand(val location: Location?) {
     var sending: Boolean = false
     var sent: Boolean = false
@@ -27,7 +23,7 @@ abstract class SendCommand(val location: Location?) {
     lateinit var id : String
     val all_locations: MutableList<Location> = mutableListOf()
 
-    abstract fun post_dict() : PostMap
+    abstract fun post_dict() : HashMap<String, String>
     protected fun formatLocation() : String {
         move_first_location()
         return when (all_locations.size) {
