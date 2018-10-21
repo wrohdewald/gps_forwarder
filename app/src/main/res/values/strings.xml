@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">GPS Forwarder</string>
+    <string name="pref_server_title">Server settings</string>
+    <string name="pref_title_url">Url</string>
+    <string name="pref_summary_url">Life tracking server</string>
+    <string name="pref_title_username">Username</string>
+    <string name="pref_summary_username">The user name on the server</string>
+    <string name="pref_title_password">Password</string>
+    <string name="pref_summary_password">Password for the user name</string>
+
+    <string name="pref_update_title">Update settings</string>
+    <string name="pref_title_min_distance">Suppress small movements</string>
+    <string name="pref_summary_min_distance">Suppress position if distance to last is less than 2 meters</string>
+    <string name="pref_title_max_ppt">Maximum points per transfer</string>
+    <string name="pref_summary_max_ppt">The server might impose such a limit. This may lead to suppressed intermediate points.</string>
+    <string name="pref_title_update_interval">Seconds between two server updates</string>
+    <string name="pref_summary_update_interval">May lead to delays</string>
+    <string name="pref_elevation_counter">Send location count as elevation.</string>
+    <string name="pref_debug_title">Debug settings</string>
+</resources>

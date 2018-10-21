@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:key="pref_key_server_settings"
+        android:title="@string/pref_server_title">
+        <EditTextPreference
+            android:defaultValue="http://www.mapmytracks.com/api/"
+            android:key="pref_key_url"
+            android:summary="@string/pref_summary_url"
+            android:title="@string/pref_title_url" />
+        <EditTextPreference
+            android:key="pref_key_username"
+            android:summary="@string/pref_summary_username"
+            android:title="@string/pref_title_username" />
+        <EditTextPreference
+            android:key="pref_key_password"
+            android:password="true"
+            android:summary="@string/pref_summary_password"
+            android:title="@string/pref_title_password" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="@string/pref_update_title"
+        android:key="pref_key_update_settings">
+        <ListPreference
+            android:key="pref_key_min_distance"
+            android:title="@string/pref_title_min_distance"
+            android:entries="@array/prefMinDistanceLabels"
+            android:entryValues="@array/prefMinDistanceValues"
+            android:summary="@string/pref_summary_min_distance"
+            android:defaultValue="20" />
+        <ListPreference
+            android:key="pref_key_update_interval"
+            android:title="@string/pref_title_update_interval"
+            android:entries="@array/prefUpdateIntervalLabels"
+            android:entryValues="@array/prefUpdateIntervalValues"
+            android:summary="@string/pref_summary_update_interval"
+            android:defaultValue="9" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="@string/pref_debug_title"
+        android:key="pref_key_debug_settings">
+        <CheckBoxPreference
+            android:key="pref_key_elevation_counter"
+            android:title="@string/pref_elevation_counter"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+    </PreferenceScreen>
