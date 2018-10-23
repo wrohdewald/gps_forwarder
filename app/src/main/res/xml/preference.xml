@@ -43,5 +43,11 @@
             android:key="pref_key_elevation_counter"
             android:title="@string/pref_elevation_counter"
             android:defaultValue="false" />
+        <MultiSelectListPreference
+            android:key="pref_key_log"
+            android:title="@string/pref_title_log"
+            android:entries="@array/prefLogLabels"
+            android:entryValues="@array/prefLogValues" />
+
     </PreferenceCategory>
     </PreferenceScreen>

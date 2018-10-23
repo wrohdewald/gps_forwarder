@@ -44,4 +44,16 @@
         <item>"100"</item>
         <item>"1000"</item>
     </string-array>
+    <string-array name="prefLogLabels">prefLogLabels
+        <item>"Start/Stop events"</item>
+        <item>"GPS fixes"</item>
+        <item>"Transmission"</item>
+        <item>"Errors"</item>
+    </string-array>
+    <string-array name="prefLogValues">prefLogValues
+        <item>"StartStop"</item>
+        <item>"GPS_Fix"</item>
+        <item>"Send"</item>
+        <item>"Error"</item>
+    </string-array>
 </resources>

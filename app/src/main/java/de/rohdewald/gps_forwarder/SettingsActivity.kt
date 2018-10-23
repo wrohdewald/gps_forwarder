@@ -5,8 +5,10 @@ import android.widget.Toast
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.res.Resources
 import android.preference.*
 import android.util.Log
+import kotlinx.android.synthetic.main.*
 
 
 class SettingsActivity : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
@@ -43,12 +45,16 @@ class SettingsActivity : Activity(), SharedPreferences.OnSharedPreferenceChangeL
     private fun setSummary(key: String, template: (String) -> String) {
         val pref = fragment.findPreference(key)
         if (pref != null) {
-            lateinit var value: String
-            if (pref is CheckBoxPreference) {
-                value = prefs.getBoolean(key, false).toString()
-            } else {
-                value = prefs.getString(key, "")
-            }
+            val value =
+                if (key == "pref_key_log") {
+                    val values = prefs.getStringSet(key,HashSet<String>())
+                    values.map { LogType.from(it) }.toSet().joinToString()
+                } else if (pref is CheckBoxPreference) {
+                    prefs.getBoolean(key, false).toString()
+                } else {
+                    prefs.getString(key, "")
+                }
+
             pref.summary = template(value)
         }
     }
@@ -60,6 +66,7 @@ class SettingsActivity : Activity(), SharedPreferences.OnSharedPreferenceChangeL
         setSummary("pref_key_min_distance") {if (it == "0") "Transmit all positions" else "When distance is below $it meters"}
         setSummary("pref_key_update_interval") {"Send every $it seconds"}
         setSummary("pref_key_elevation_counter") {"Useful for debugging"}
+        setSummary("pref_key_log") {"$it"}
     }
 }
 

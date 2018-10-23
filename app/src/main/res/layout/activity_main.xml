@@ -6,26 +6,73 @@
 	android:layout_height="match_parent"
 	tools:context=".MainActivity">
 
-	<android.support.constraint.ConstraintLayout
-		android:id="@+id/constraintLayout"
-		android:layout_width="363dp"
-		android:layout_height="70dp"
-		tools:layout_editor_absoluteX="8dp"
-		tools:layout_editor_absoluteY="29dp">
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/progressLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-	</android.support.constraint.ConstraintLayout>
+        <view
+            android:id="@+id/greenTimeBar"
+            class="android.support.v7.widget.AppCompatImageView"
+            android:layout_width="match_parent"
+            android:layout_height="7dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:content="@color/colorPrimary"
+            android:text="green"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-	<ScrollView
-		android:layout_width="370dp"
-		android:layout_height="336dp"
-		android:layout_marginTop="8dp"
-		app:layout_constraintTop_toBottomOf="@+id/constraintLayout"
-		tools:layout_editor_absoluteX="8dp">
+        <view
+            android:id="@+id/redTimeBar"
+            class="android.support.v7.widget.AppCompatImageView"
+            android:layout_width="match_parent"
+            android:layout_height="7dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:content="@color/colorAccent"
+            android:text="red"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/greenTimeBar" />
 
-		<LinearLayout
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:orientation="vertical" />
-	</ScrollView>
+
+    </android.support.constraint.ConstraintLayout>
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/logLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/progressLayout">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/logView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:scrollbars="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </android.support.constraint.ConstraintLayout>
 
 </android.support.constraint.ConstraintLayout>

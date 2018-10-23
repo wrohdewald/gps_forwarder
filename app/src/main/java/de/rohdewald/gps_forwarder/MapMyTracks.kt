@@ -2,15 +2,16 @@ package de.rohdewald.gps_forwarder
 
 import android.content.SharedPreferences
 import android.location.Location
+import android.os.Handler
 import android.preference.PreferenceManager
 import android.util.Log
 import android.util.Base64
 import com.android.volley.toolbox.*
 import com.android.volley.*
+import kotlinx.android.synthetic.main.activity_main.*
 import org.w3c.dom.Document
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.util.*
-import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.timerTask
 import java.text.SimpleDateFormat
 
@@ -47,6 +48,10 @@ abstract class SendCommand(val location: Location?) {
     fun add_location(additional_location: Location) {
         move_first_location()
         all_locations.add(additional_location)
+    }
+
+    fun to_DoneString(answer: String): String {
+        return "[$id] $answer"
     }
 }
 
@@ -87,12 +92,11 @@ class MapMyTracks(val mainActivity: MainActivity) {
     private val TAG = "WR.MapMyTracks"
     var queue = Volley.newRequestQueue(mainActivity)
     var commands : MutableList<SendCommand> = mutableListOf()
-    var send_timer = Timer()
+ //   var send_timer = Timer()
     var start_sent = false
     var running = false
     lateinit var last_sent_location: Location
     var location_count = 0.0
-    private var lock = ReentrantLock()
 
     lateinit var url: String
     lateinit var username: String
@@ -105,12 +109,12 @@ class MapMyTracks(val mainActivity: MainActivity) {
     init {
         val prefs = PreferenceManager.getDefaultSharedPreferences(mainActivity)
         preferenceChanged(prefs,"")
+        schedule()
     }
     // vor Ausschalten retten: commands, running,start_sent,location_count,id
     var id: String = "0"
 
     fun send(location: Location) {
-        Log.d(TAG + ":TIME","point time: ${timefmt(location)}")
         if (altitude_count) {
             location_count += 1
             location.altitude = location_count
@@ -128,54 +132,38 @@ class MapMyTracks(val mainActivity: MainActivity) {
 
     }
 
+    private fun schedule() {
+        Handler().apply {
+        val runnable = object : Runnable {
+            override fun run() = try {
+                transmit()
+            } finally {
+                mainActivity.logSend("next transmission in ${update_interval} seconds")
+                if (running || commands.size > 0) {
+                    postDelayed(this, if (running) update_interval * 1000L else 0L)
+                }
+            }
+        }
+        postDelayed(runnable, update_interval * 1000L)
+    }
+}
     fun preferenceChanged(prefs: SharedPreferences?, key: String?) {
         if (prefs != null) {
             url = prefs.getString("pref_key_url", "")
             username = prefs.getString("pref_key_username", "")
             password = prefs.getString("pref_key_password", "")
-            lock.lock()
-            try {
-                altitude_count = prefs.getBoolean("pref_key_elevation_counter",false)
-                update_interval = prefs.getString("pref_key_update_interval", "").toLong()
-                min_distance = prefs.getString("pref_key_min_distance", "2").toInt()
-            } finally {
-                lock.unlock()
-            }
-            when (key) {
-                "pref_key_update_interval" -> schedule()
-            }
-
+            altitude_count = prefs.getBoolean("pref_key_elevation_counter",false)
+            update_interval = prefs.getString("pref_key_update_interval", "").toLong()
+            min_distance = prefs.getString("pref_key_min_distance", "2").toInt()
         }
     }
 
     private fun start(location: Location) {
-        lock.lock()
-        try {
             commands.add(SendStart(location))
+            mainActivity.logSend("MMT.start added ${commands[commands.size-1]}")
             running = true
-            schedule()
             last_sent_location = location
             transmit()
-        } finally {
-            lock.unlock()
-        }
-    }
-
-    private fun schedule() {
-        lock.lock()
-        try {
-            if (send_timer != null) {
-                try {
-                    send_timer.cancel()
-                } catch (e: java.lang.Exception) {
-                }
-            }
-            send_timer = Timer()
-            send_timer.schedule(timerTask { transmit() }, 0L, 1000L * update_interval)
-        } finally {
-            lock.unlock()
-        }
-        Log.d(TAG,"Scheduler set to $update_interval seconds")
     }
 
     private fun timefmt(location: Location): String {
@@ -184,8 +172,6 @@ class MapMyTracks(val mainActivity: MainActivity) {
     }
 
     private fun update(location: Location) {
-        lock.lock()
-        try {
             if (location.time < last_sent_location.time) {
                 Log.e(TAG,"Time runs backwards. Last: ${timefmt(last_sent_location)} New: ${timefmt(location)}")
             }
@@ -193,22 +179,16 @@ class MapMyTracks(val mainActivity: MainActivity) {
             if (running && distance >= min_distance) {
                 last_sent_location = location
                 commands.add(SendUpdate(location))
+                mainActivity.logSend("MMT.update added ${commands[commands.size-1]}")
             }
-        } finally {
-            lock.unlock()
-        }
     }
 
     fun stop() {
-        lock.lock()
-        try {
             var command = SendStop(null)
             commands.add(command)
-            send_timer.schedule(timerTask { transmit() }, 0L, 1L) // finish fast
+            mainActivity.logSend("MMT.stop added ${commands[commands.size-1]}")
+//          send_timer.schedule(timerTask { transmit() }, 0L, 1L) // finish fast
             running = false
-        } finally {
-            lock.unlock()
-        }
     }
 
     private fun parseString(networkResponse: String): Document? {
@@ -234,9 +214,10 @@ class MapMyTracks(val mainActivity: MainActivity) {
         if (commands.size == 0) return
         if (is_sending()) return
         var new_command = commands[0]
-        if (new_command.all_locations.size >= max_ppt) return
-        var added: MutableList<SendCommand> = mutableListOf()
         if (new_command is SendStop) return
+        if (new_command.all_locations.size >= max_ppt) return
+        mainActivity.logError("combine am Anfang: ${commands.size}")
+        var added: MutableList<SendCommand> = mutableListOf()
         for (command in commands.subList(1, commands.size)) {
             if (command !is SendUpdate) continue
             if (command.location == null) continue
@@ -244,18 +225,18 @@ class MapMyTracks(val mainActivity: MainActivity) {
             new_command.add_location(command.location)
             added.add(command)
         }
+        mainActivity.logError("combine vor filter: ${commands.size}")
         commands = commands.filter { it !in added}.toMutableList()
+        mainActivity.logError("combine nach filter: ${commands.size}")
+        if (commands.size == 0)
+            mainActivity.logError("combine returns 0 commands")
     }
 
     private fun is_sending() = commands.count { it.sending } > 0
 
     private fun transmit() {
         var command: SendCommand
-        lock.lock()
-        try {
             if (commands.size == 0) {
-                if (!running)
-                    send_timer.cancel()
                 return
             }
             if (is_sending()) return
@@ -263,15 +244,15 @@ class MapMyTracks(val mainActivity: MainActivity) {
             command = commands[0]
             command.sending = true
             command.id = id
-        } finally {
-            lock.unlock()
-        }
-        Log.d(TAG,"----> transmit $command")
         var request = object: StringRequest(Request.Method.POST, url,
                 Response.Listener {
                     var document = parseString(it)
                     if (document != null) {
                         var type_item = document.getElementsByTagName("type")
+                        var answerForLog = type_item.item(0).textContent
+                        if (command.all_locations.size > 0)
+                            answerForLog += " ${command.all_locations.size} points"
+                        mainActivity.logSend(command.to_DoneString(answerForLog))
                         if (type_item.length != 1 || type_item.item(0).textContent != command.expect) {
                             Log.e(TAG, "unexpected answer " + type_item.item(0) + " map=" + command.toString())
                         }
@@ -279,17 +260,12 @@ class MapMyTracks(val mainActivity: MainActivity) {
                         if (id_item.length != 0) {
                             id = id_item.item(0).textContent
                         }
-                        lock.lock()
-                        try {
                             if (command != commands[0]) throw IllegalStateException("response: wrong command")
                             command.sending = false
                             command.sent = true
                             commands = commands.drop(1).toMutableList()
                             if (!is_sending() && mainActivity.isFinishing())
                                 mainActivity.finishAndRemoveTask()
-                        } finally {
-                            lock.unlock()
-                        }
                     }
                 },
                 Response.ErrorListener {
