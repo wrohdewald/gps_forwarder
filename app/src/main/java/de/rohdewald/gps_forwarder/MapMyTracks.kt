@@ -90,7 +90,6 @@ internal class SendStop(location: Location?) : SendCommand(location) {
 
 class MapMyTracks(val mainActivity: MainActivity) {
 
-    private val TAG = "WR.MapMyTracks"
     private var queue: RequestQueue = Volley.newRequestQueue(mainActivity)
     private var commands: MutableList<SendCommand> = mutableListOf()
     private var running = false

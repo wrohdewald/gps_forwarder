@@ -40,11 +40,6 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
     private var prevAppliedTimeDelta = 0
     var isSenderEnabled = false
 
-
-    override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {
-        Log.i(TAG, "statusChanged: provider:" + provider + " status:" + status)
-    }
-
     fun onClickSettings(item: MenuItem) {
         val intent = Intent(this, SettingsActivity::class.java)
         startActivity(intent)
@@ -85,13 +80,16 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
 
 
     override fun onProviderEnabled(provider: String) {
-        logStartStop("providerEnabled:" + provider)
+        logGpsFix("providerEnabled:" + provider)
     }
 
     override fun onProviderDisabled(provider: String) {
-        logStartStop("providerDisabled:" + provider)
+        logGpsFix("providerDisabled:" + provider)
     }
 
+    override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {
+        logGpsFix("statusChanged: provider:" + provider + " status:" + status)
+    }
     override fun onLocationChanged(location: Location) {
         if (location.provider == "gps") {
             val hour = 1000L * 3600L
@@ -187,7 +185,7 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
 
     override fun onBackPressed() {
         if (isSenderEnabled) {
-            Toast.makeText(this, "Please stop transmission first", 2).show()
+            Toast.makeText(this, "Please stop transmission first", Toast.LENGTH_SHORT).show()
         } else {
             super.onBackPressed()
         }
