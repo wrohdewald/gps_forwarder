@@ -69,6 +69,7 @@ class SettingsActivity : Activity(), SharedPreferences.OnSharedPreferenceChangeL
         setSummary("pref_key_update_interval") {"Send every $it seconds"}
         setSummary("pref_key_elevation_counter") {"Useful for debugging"}
         setSummary("pref_key_log") {"$it"}
+        setSummary("pref_key_fontsize") {"$it"}
     }
 }
 

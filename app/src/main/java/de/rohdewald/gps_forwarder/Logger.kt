@@ -15,6 +15,23 @@ import android.support.v7.widget.GridLayoutManager
 
 fun MainActivity.loggerPreferenceChanged() {
     logThis = get_logThis()
+    val newCellTextSize =  prefs.getString("pref_key_fontsize", "12").toFloat()
+    val arrayId = when (newCellTextSize.toInt()) {
+        8 -> R.array.logSpans8
+        10 -> R.array.logSpans10
+        14 -> R.array.logSpans14
+        16 -> R.array.logSpans16
+        else -> R.array.logSpans12
+    }
+    val newSpans = resources.getIntArray(arrayId).toMutableList()
+    newSpans.add(100 - newSpans.sum())
+
+    if (newCellTextSize != cellTextSize || newSpans != logSpans) {
+        cellTextSize = newCellTextSize
+        logSpans = newSpans
+        logColumns = logSpans.size
+        invalidateView(logView)
+    }
 }
 
 fun MainActivity.setupLogger(logView:RecyclerView) {
@@ -79,14 +96,21 @@ enum class LogType(val type: Int = 0) {
 // The rest is internal
 
 // this must correspond to what bindRow() does
-internal val logSpans = listOf(1,4)
-internal val logColumns = logSpans.size
+internal var logSpans : List<Int> = listOf()
+internal var logColumns = 2
 
 internal val logItems = mutableListOf<LogItem>()
 
 internal var scrollToEnd = true
 
 internal lateinit var logAdapter: LogRecyclerAdapter
+
+internal fun invalidateView(view:RecyclerView?) =
+        view?.apply {
+            recycledViewPool.clear()
+            invalidate()
+            this.adapter.notifyDataSetChanged()
+        }
 
 internal fun MainActivity.log(type: LogType, msg: String) {
     if (type in logThis) {
@@ -108,6 +132,7 @@ internal open class LogItem(val type: LogType, val msg: String) {
 }
 
 internal var logThis = setOf<LogType>()
+internal var cellTextSize = 0f
 
 internal class LogRecyclerAdapter(private val logLines: List<LogItem>) : RecyclerView.Adapter<LogRecyclerAdapter.LogItemHolder>() {
 
@@ -131,6 +156,7 @@ internal class LogRecyclerAdapter(private val logLines: List<LogItem>) : Recycle
                 LogType.StartStop -> Color.BLACK
             }
             view.itemColumn.setTextColor(color)
+            view.itemColumn.setTextSize(cellTextSize)
             val column = position % logColumns
             if (column == 0) {
                 view.itemColumn.text = item.time.toLog()

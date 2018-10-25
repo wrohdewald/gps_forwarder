@@ -56,4 +56,33 @@
         <item>Send</item>
         <item>Error</item>
     </string-array>
+    <string-array name="prefFontSizeLabels">prefFontSizeLabels
+        <item>8pt</item>
+        <item>10pt</item>
+        <item>12pt</item>
+        <item>14pt</item>
+        <item>16pt</item>
+    </string-array>
+    <string-array name="prefFontSizeValues">prefFontSizeValues
+        <item>8</item>
+        <item>10</item>
+        <item>12</item>
+        <item>14</item>
+        <item>16</item>
+    </string-array>
+    <integer-array name="logSpans8">
+        <item>15</item>
+    </integer-array>
+    <integer-array name="logSpans10">
+        <item>18</item>
+    </integer-array>
+    <integer-array name="logSpans12">
+        <item>21</item>
+    </integer-array>
+    <integer-array name="logSpans14">
+        <item>24</item>
+    </integer-array>
+    <integer-array name="logSpans16">
+        <item>27</item>
+    </integer-array>
 </resources>

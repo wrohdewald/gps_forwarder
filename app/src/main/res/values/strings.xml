@@ -18,5 +18,7 @@
     <string name="pref_elevation_counter">Send location count as elevation.</string>
     <string name="pref_debug_title">Debug settings</string>
     <string name="pref_title_log">What to log</string>
+    <string name="pref_title_fontsize">Font size in log</string>
     <string name="startstop_action_title">Start lifetracking</string>
+    <string name="pref_summary_fontsize">pref_summary_fontsize</string>
 </resources>

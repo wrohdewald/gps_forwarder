@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer-array name="logSpans8">
+        <item>8</item>
+    </integer-array>
+    <integer-array name="logSpans10">
+        <item>10</item>
+    </integer-array>
+    <integer-array name="logSpans12">
+        <item>12</item>
+    </integer-array>
+    <integer-array name="logSpans14">
+        <item>15</item>
+    </integer-array>
+    <integer-array name="logSpans16">
+        <item>18</item>
+    </integer-array>
+</resources>

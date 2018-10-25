@@ -48,6 +48,13 @@
             android:title="@string/pref_title_log"
             android:entries="@array/prefLogLabels"
             android:entryValues="@array/prefLogValues" />
+        <ListPreference
+            android:key="pref_key_fontsize"
+            android:title="@string/pref_title_fontsize"
+            android:entries="@array/prefFontSizeLabels"
+            android:entryValues="@array/prefFontSizeValues"
+            android:summary="@string/pref_summary_fontsize"
+            android:defaultValue="12" />
 
     </PreferenceCategory>
     </PreferenceScreen>
