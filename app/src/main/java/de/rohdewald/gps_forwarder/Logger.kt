@@ -36,6 +36,9 @@ fun MainActivity.setupLogger(logView:RecyclerView) {
     logView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
         override fun onScrollStateChanged(recyclerView: RecyclerView?, newState: Int) {
             super.onScrollStateChanged(recyclerView, newState)
+            val totalItemCount = recyclerView!!.layoutManager.itemCount
+            val lastVisibleItemPosition = gridLayoutManager.findLastVisibleItemPosition()
+            scrollToEnd = totalItemCount == lastVisibleItemPosition + 1
         }
     })
 }
@@ -81,6 +84,7 @@ internal val logColumns = logSpans.size
 
 internal val logItems = mutableListOf<LogItem>()
 
+internal var scrollToEnd = true
 
 internal lateinit var logAdapter: LogRecyclerAdapter
 
@@ -88,10 +92,8 @@ internal fun MainActivity.log(type: LogType, msg: String) {
     if (type in logThis) {
         logItems.add(LogItem(type, msg))
         logAdapter.notifyItemRangeInserted(logItems.size * logColumns - logColumns, logColumns)
-        // TODO: activate autoscroll to end of list if the scrollbar is at end. Disable otherwise.
-        // https://stackoverflow.com/questions/26543131/how-to-implement-endless-list-with-recyclerview
-
- //       this.logView.scrollToPosition(this.logAdapter.itemCount - 1)
+        if (scrollToEnd)
+            logView.scrollToPosition(logAdapter.itemCount - 1)
     }
 }
 
