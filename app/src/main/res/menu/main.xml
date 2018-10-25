@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
+
+    <item
+        android:id="@+id/startstop_action"
+        android:checkable="true"
+        android:onClick="onClickStartStop"
+        android:icon="@mipmap/ic_action_start"
+        android:title="@string/startstop_action_title"
+        app:showAsAction="always" />
     <item
         android:title="Settings"
         android:onClick="onClickSettings" />

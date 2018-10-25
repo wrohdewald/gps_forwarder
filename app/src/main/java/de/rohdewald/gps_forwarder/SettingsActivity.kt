@@ -11,6 +11,8 @@ import android.util.Log
 import kotlinx.android.synthetic.main.*
 
 
+// TODO proper default settings. Why do I have to define them twice?
+
 class SettingsActivity : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
     lateinit var fragment: PreferenceFragment
     lateinit var prefs: SharedPreferences
@@ -48,7 +50,7 @@ class SettingsActivity : Activity(), SharedPreferences.OnSharedPreferenceChangeL
             val value =
                 if (key == "pref_key_log") {
                     val values = prefs.getStringSet(key,HashSet<String>())
-                    values.map { LogType.from(it) }.toSet().joinToString()
+                    values.filter { it[0] !in "0123456789"}.map { LogType.from(it) }.toSet().joinToString()
                 } else if (pref is CheckBoxPreference) {
                     prefs.getBoolean(key, false).toString()
                 } else {
@@ -71,7 +73,7 @@ class SettingsActivity : Activity(), SharedPreferences.OnSharedPreferenceChangeL
 }
 
 class SettingsFragment() : PreferenceFragment() {
-    lateinit var activity: SettingsActivity
+    var activity: SettingsActivity? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         addPreferencesFromResource(R.xml.preference)
@@ -84,8 +86,15 @@ class SettingsFragment() : PreferenceFragment() {
         }
     }
 
+    override fun onDetach() {
+        activity = null
+        super.onDetach()
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        activity.updateSummaries()
+        if (activity != null) {
+            (activity as SettingsActivity).updateSummaries()
+        }
     }
 }

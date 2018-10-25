@@ -2,32 +2,14 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/linearLayout"
+    android:id="@+id/GridLayout"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
     <TextView
-        android:id="@+id/itemTime"
+        android:id="@+id/itemColumn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:breakStrategy="balanced"
-        android:textAlignment="textStart"
-        app:layout_constraintBaseline_toBaselineOf="@+id/itemShort"
-        app:layout_constraintEnd_toStartOf="@+id/itemShort"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:text="23:59:14.345" />
-
-    <TextView
-        android:id="@+id/itemShort"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:baselineAligned="true"
-        android:ellipsize="end"
-        android:maxLines="5"
-        android:text="shortmessage"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/itemTime" />
+        android:textSize="8sp" />
 
 </android.support.constraint.ConstraintLayout>
