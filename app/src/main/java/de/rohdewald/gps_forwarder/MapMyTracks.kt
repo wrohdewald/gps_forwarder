@@ -157,7 +157,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
             username = prefs.getString("pref_key_username", "")
             password = prefs.getString("pref_key_password", "")
             altitudeAsCounter = prefs.getBoolean("pref_key_elevation_counter", false)
-            update_interval = prefs.getString("pref_key_update_interval", "").toLong()
+            update_interval = prefs.getString("pref_key_update_interval", "9").toLong()
             min_distance = prefs.getString("pref_key_min_distance", "2").toInt()
         }
     }

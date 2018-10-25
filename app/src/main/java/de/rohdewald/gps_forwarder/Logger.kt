@@ -70,7 +70,7 @@ enum class LogType(val type: Int = 0) {
             }
         }
         fun from(values: Set<String>) : Set<LogType> {
-            return values.filter { it[0] !in "0123456789"}.map { LogType.from(it) }.toSet()
+            return values.map { LogType.from(it) }.toSet()
         }
     }
 }
