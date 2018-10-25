@@ -13,6 +13,39 @@ import kotlinx.android.synthetic.main.log_row.view.*
 import kotlinx.android.synthetic.main.activity_main.*
 import android.support.v7.widget.GridLayoutManager
 
+fun MainActivity.loggerPreferenceChanged() {
+    logThis = get_logThis()
+}
+
+fun MainActivity.setupLogger(logView:RecyclerView) {
+    class MySpanSizeLookup: GridLayoutManager.SpanSizeLookup() {
+        override fun getSpanSize(position: Int) = logSpans[position % logColumns]
+
+        // we can optimize this because we know all rows have the same number of items
+        override fun getSpanIndex(position: Int, spanCount: Int) =
+                logSpans.subList(0, (position % logColumns)).sum()
+
+    }
+    val gridLayoutManager = GridLayoutManager(this, logSpans.sum())
+    logView.layoutManager = gridLayoutManager
+    gridLayoutManager.spanSizeLookup = MySpanSizeLookup()
+    logAdapter = LogRecyclerAdapter(logItems)
+    logView.adapter = logAdapter
+
+    // add a scroll listener
+    logView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        override fun onScrollStateChanged(recyclerView: RecyclerView?, newState: Int) {
+            super.onScrollStateChanged(recyclerView, newState)
+        }
+    })
+}
+
+fun MainActivity.logStartStop(msg: String) = log(LogType.StartStop,msg)
+fun MainActivity.logGpsFix(msg: String) = log(LogType.GPS_Fix,msg)
+fun MainActivity.logSend(msg: String) = log(LogType.Send,msg)
+fun MainActivity.logError(msg: String) = log(LogType.Error,msg)
+
+
 enum class LogType(val type: Int = 0) {
     StartStop,
     GPS_Fix(1),
@@ -33,19 +66,28 @@ enum class LogType(val type: Int = 0) {
                 }
             }
         }
+        fun from(values: Set<String>) : Set<LogType> {
+            return values.filter { it[0] !in "0123456789"}.map { LogType.from(it) }.toSet()
+        }
     }
 }
 
+
+// The rest is internal
+
 // this must correspond to what bindRow() does
-val logSpans = listOf(1,4)
-val logColumns = logSpans.size
+internal val logSpans = listOf(1,4)
+internal val logColumns = logSpans.size
 
 internal val logItems = mutableListOf<LogItem>()
 
-fun MainActivity.log(type: LogType, msg: String) {
-    if (type in this.logThis) {
+
+internal lateinit var logAdapter: LogRecyclerAdapter
+
+internal fun MainActivity.log(type: LogType, msg: String) {
+    if (type in logThis) {
         logItems.add(LogItem(type, msg))
-        this.logAdapter.notifyItemRangeInserted(logItems.size * logColumns - logColumns, logColumns)
+        logAdapter.notifyItemRangeInserted(logItems.size * logColumns - logColumns, logColumns)
         // TODO: activate autoscroll to end of list if the scrollbar is at end. Disable otherwise.
         // https://stackoverflow.com/questions/26543131/how-to-implement-endless-list-with-recyclerview
 
@@ -53,17 +95,19 @@ fun MainActivity.log(type: LogType, msg: String) {
     }
 }
 
-fun MainActivity.logStartStop(msg: String) = log(LogType.StartStop,msg)
-fun MainActivity.logGpsFix(msg: String) = log(LogType.GPS_Fix,msg)
-fun MainActivity.logSend(msg: String) = log(LogType.Send,msg)
-fun MainActivity.logError(msg: String) = log(LogType.Error,msg)
+internal fun MainActivity.get_logThis() : Set<LogType> {
+    var foundSettings = prefs.getStringSet("pref_key_log", HashSet<String>())
+    return LogType.from(foundSettings)
+}
 
-open class LogItem(val type: LogType, val msg: String) {
+internal open class LogItem(val type: LogType, val msg: String) {
     val time = Date()
     val tid = android.os.Process.myTid()
 }
 
-class LogRecyclerAdapter(private val logLines: List<LogItem>) : RecyclerView.Adapter<LogRecyclerAdapter.LogItemHolder>() {
+internal var logThis = setOf<LogType>()
+
+internal class LogRecyclerAdapter(private val logLines: List<LogItem>) : RecyclerView.Adapter<LogRecyclerAdapter.LogItemHolder>() {
 
     class LogItemHolder(v: View) : RecyclerView.ViewHolder(v), View.OnClickListener {
         private var view: View = v
@@ -106,7 +150,6 @@ class LogRecyclerAdapter(private val logLines: List<LogItem>) : RecyclerView.Ada
     override fun onBindViewHolder(holder: LogRecyclerAdapter.LogItemHolder, position: Int) {
         val item = logLines[position / logColumns]
         holder.bindRow(item, position)
-
     }
 }
 

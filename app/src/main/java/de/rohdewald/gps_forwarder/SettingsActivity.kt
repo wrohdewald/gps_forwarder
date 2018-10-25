@@ -50,7 +50,7 @@ class SettingsActivity : Activity(), SharedPreferences.OnSharedPreferenceChangeL
             val value =
                 if (key == "pref_key_log") {
                     val values = prefs.getStringSet(key,HashSet<String>())
-                    values.filter { it[0] !in "0123456789"}.map { LogType.from(it) }.toSet().joinToString()
+                    LogType.from(values).joinToString()
                 } else if (pref is CheckBoxPreference) {
                     prefs.getBoolean(key, false).toString()
                 } else {

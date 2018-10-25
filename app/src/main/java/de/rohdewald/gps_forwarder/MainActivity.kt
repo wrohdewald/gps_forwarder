@@ -11,15 +11,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
-import android.support.v7.widget.GridLayoutManager
-import android.support.v7.widget.GridLayoutManager.SpanSizeLookup
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.System.currentTimeMillis
 import java.text.SimpleDateFormat
-import java.util.*
 
 // TODO import android.net.ConnectivityManager.NetworkCallback
 
@@ -32,23 +29,13 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         sender.preferenceChanged(sharedPreferences, key)
-        logThis = get_logThis()
+        loggerPreferenceChanged()
     }
 
-    private fun get_logThis() : List<LogType> {
-        var foundSettings = prefs.getStringSet("pref_key_log", HashSet<String>())
-        return foundSettings.filter { it[0] !in "0123456789"}.map { LogType.from(it) }
-    }
-
-    private val TAG = "WR.MainActivity"
     private val got_permission = 1234
     lateinit private var mLocationManager: LocationManager
     private lateinit var sender : MapMyTracks
-//    var isSenderRunning = false
-    lateinit var logAdapter: LogRecyclerAdapter
-    private lateinit var gridLayoutManager: GridLayoutManager
     lateinit var prefs: SharedPreferences
-    var logThis = listOf<LogType>()
     var prevLocationTime = 0L
     private var prevAppliedTimeDelta = 0
     var isSenderEnabled = false
@@ -136,30 +123,20 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
         }
     }
 
-    class MySpanSizeLookup: SpanSizeLookup() {
-        override fun getSpanSize(position: Int) = logSpans[position % logColumns]
-
-        // we can optimize this because we know all rows have the same number of items
-        override fun getSpanIndex(position: Int, spanCount: Int) =
-            logSpans.subList(0, (position % logColumns)).sum()
-
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         // TODO: kommt hier nie durch, wenn im Handy Lokalisation aus ist
         super.onCreate(savedInstanceState)
         prefs = PreferenceManager.getDefaultSharedPreferences(this)
         sender = MapMyTracks(this)
-        logThis = get_logThis()
+        loggerPreferenceChanged()
         isSenderEnabled = sender.hasMmtId()  // if the previous app instance was abruptly killed, just continue
         prefs.registerOnSharedPreferenceChangeListener(this)  // when starting, onResume is never called
         setContentView(R.layout.activity_main)
-        gridLayoutManager = GridLayoutManager(this, logSpans.sum())
-        gridLayoutManager.spanSizeLookup = MySpanSizeLookup()
-        logView.layoutManager = gridLayoutManager
-        logAdapter = LogRecyclerAdapter(logItems)
-        logView.adapter = logAdapter
-        logStartStop("GPS Forwarder started")
+        setupLogger(logView)
+        if (isSenderEnabled)
+            logStartStop("Contining after interruption")
+        else
+            logStartStop("GPS Forwarder started")
         val manager : LocationManager? = getSystemService(Context.LOCATION_SERVICE) as LocationManager?
         if (manager == null) {
             logError("Cannot get a LocationManager")
