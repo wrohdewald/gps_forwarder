@@ -13,13 +13,15 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.util.*
 import java.text.SimpleDateFormat
 
+private const val noMmtId = "0"
+
 
 internal abstract class SendCommand(val location: Location?) {
     var sending: Boolean = false
     var sent: Boolean = false
     abstract val request: String
     abstract val expect: String
-    lateinit var mmtId: String
+    var mmtId: String = noMmtId
     val all_locations: MutableList<Location> = mutableListOf()
 
     abstract fun post_dict(): HashMap<String, String>
@@ -34,7 +36,7 @@ internal abstract class SendCommand(val location: Location?) {
     override fun toString(): String {
         move_first_location()
         var result = "Command($request ${all_locations.size} points sending=$sending"
-        if (::mmtId.isInitialized) result += " mmtId=$mmtId"
+        if (mmtId != noMmtId) result += " mmtId=$mmtId"
         return result + ")"
     }
 
@@ -48,12 +50,7 @@ internal abstract class SendCommand(val location: Location?) {
         all_locations.add(additional_location)
     }
 
-    fun to_DoneString(answer: String): String {
-        if (::mmtId.isInitialized)
-            return "[$mmtId] $answer"
-        else
-            return "$this has no mmtId, answer:$answer"
-    }
+        if (mmtId != null)
 }
 
 
@@ -187,17 +184,14 @@ class MapMyTracks(val mainActivity: MainActivity) {
     }
 
     private fun gotMmtId(newId: String) {
-        if (newId == noMmtId)
-            mainActivity.logError("gotMmtId got noMntId $newId")
         if (currentMmtId != newId) {
             currentMmtId = newId
             val preferences = mainActivity.getPreferences(MODE_PRIVATE)
             val editor = preferences.edit()
             editor.putString("MmtId", newId)
             editor.commit()
-            commands.forEach {
-                it.mmtId = newId
-            }
+            if (newId != noMmtId)
+                commands.forEach { it.mmtId = newId }
         }
     }
 
@@ -208,7 +202,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
             stop_command.mmtId = currentMmtId
             stopping = true
             commands.add(stop_command)
-            currentMmtId = noMmtId
+            gotMmtId(noMmtId)
             running = false
         }
     }
