@@ -15,6 +15,8 @@ import java.text.SimpleDateFormat
 
 private const val noMmtId = "0"
 
+var altitudeAsCounter = false
+
 
 internal abstract class SendCommand(val location: Location?) {
     var sending: Boolean = false
@@ -26,6 +28,7 @@ internal abstract class SendCommand(val location: Location?) {
 
     abstract fun post_dict(): HashMap<String, String>
     protected fun formatLocation(): String {
+        // as expected by the MapMyTracks protocol
         move_first_location()
         return when (all_locations.size) {
             0 -> ""
@@ -50,7 +53,14 @@ internal abstract class SendCommand(val location: Location?) {
         all_locations.add(additional_location)
     }
 
-        if (mmtId != null)
+    fun locationsToString() =
+        if (altitudeAsCounter) {
+            "points " + all_locations.map { it.altitude.toInt() }.joinToString(separator=",")
+        } else {
+            "${all_locations.size} points"
+        }
+
+    abstract fun toLogString(answer: String): String
 }
 
 
@@ -65,6 +75,12 @@ internal class SendStart(location: Location?) : SendCommand(location) {
             "source" to "gps_forwarder",
             "version" to "${BuildConfig.VERSION_NAME} ${BuildConfig.VERSION_CODE}",
             "points" to formatLocation())
+    override fun toLogString(answer: String): String {
+        if (mmtId != noMmtId && answer == expect)
+            return "ID $mmtId: started, ${locationsToString()} forwarded"
+        else
+            return "$this got answer $answer"
+    }
 }
 
 internal class SendUpdate(location: Location?) : SendCommand(location) {
@@ -74,6 +90,11 @@ internal class SendUpdate(location: Location?) : SendCommand(location) {
             "request" to request,
             "activity_id" to mmtId,
             "points" to formatLocation())
+    override fun toLogString(answer: String) =
+        if (mmtId != noMmtId && answer == expect)
+            "ID $mmtId: ${locationsToString()} forwarded"
+        else
+            "$this got answer $answer"
 }
 
 internal class SendStop(location: Location?) : SendCommand(location) {
@@ -82,6 +103,12 @@ internal class SendStop(location: Location?) : SendCommand(location) {
     override fun post_dict() = hashMapOf(
             "request" to request,
             "activity_id" to mmtId)
+    override fun toLogString(answer: String): String {
+        if (mmtId != noMmtId && answer == expect)
+            return "ID $mmtId: Forwarding stopped"
+        else
+            return "$this got answer $answer"
+    }
 }
 
 
@@ -97,7 +124,6 @@ class MapMyTracks(val mainActivity: MainActivity) {
     lateinit private var url: String
     lateinit private var username: String
     lateinit private var password: String
-    private var altitudeAsCounter = false
     private var min_distance = 0
     private var max_ppt = 100
     private var update_interval = 2L
@@ -121,6 +147,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
             location_count += 1
             location.altitude = location_count
         }
+        mainActivity.logGpsFix("GPS forwarded: ${location.toLog()}")
 
         if (!running) {
             running = true
@@ -266,8 +293,6 @@ class MapMyTracks(val mainActivity: MainActivity) {
                     if (document != null) {
                         var type_item = document.getElementsByTagName("type")
                         var answerForLog = type_item.item(0).textContent
-                        if (command.all_locations.size > 0)
-                            answerForLog += " ${command.all_locations.size} points"
                         if (type_item.length != 1 || type_item.item(0).textContent != command.expect) {
                             mainActivity.logError("unexpected answer " + type_item.item(0) + " map=" + command.toString())
                         }
@@ -275,7 +300,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
                         if (id_item.length != 0) {
                             gotMmtId(id_item.item(0).textContent)
                         }
-                        mainActivity.logSend(command.to_DoneString(answerForLog))
+                        mainActivity.logSend(command.toLogString(answerForLog))
                     }
                     commands = commands.drop(1).toMutableList()
                     if (!is_sending() && mainActivity.isFinishing())

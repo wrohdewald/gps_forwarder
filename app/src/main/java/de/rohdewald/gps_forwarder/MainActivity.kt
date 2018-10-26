@@ -118,10 +118,12 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
                 logError("Will add $appliedDelta days to GPS times")
                 prevAppliedTimeDelta = appliedDelta
             }
-            val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
-            logGpsFix("GPS ${formatter.format(location.time)} et=${location.elapsedRealtimeNanos} ${"%.6f".format(location.latitude)} ${"%.6f".format(location.longitude)}")
             if (isSenderEnabled)
                 sender.send(location)
+            else
+                logGpsFix("GPS ignored: ${location.toLog()}")
+        } else {
+            logError("GPS from other source: ${location.provider} ${location.toLog()}")
         }
     }
 
