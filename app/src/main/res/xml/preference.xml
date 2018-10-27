@@ -14,7 +14,7 @@
             android:title="@string/pref_title_username" />
         <EditTextPreference
             android:key="pref_key_password"
-            android:password="true"
+            android:inputType="textPassword"
             android:summary="@string/pref_summary_password"
             android:title="@string/pref_title_password" />
     </PreferenceCategory>
