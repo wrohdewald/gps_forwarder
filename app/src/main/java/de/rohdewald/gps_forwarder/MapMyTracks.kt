@@ -12,6 +12,8 @@ import org.w3c.dom.Document
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.util.*
 import java.text.SimpleDateFormat
+import kotlin.math.max
+import kotlin.math.min
 
 private const val noMmtId = "0"
 
@@ -118,6 +120,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
     private var commands: MutableList<SendCommand> = mutableListOf()
     private var running = false
     private var stopping = false
+    private var connectionLost = false
     private lateinit var last_sent_location: Location
     private var location_count = 0.0
 
@@ -127,6 +130,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
     private var min_distance = 0
     private var max_ppt = 100
     private var prefUpdateInterval = 2L
+    private var updateInterval = 0L
     private var currentMmtId: String = noMmtId
     lateinit private var handler: Handler
 
@@ -155,6 +159,11 @@ class MapMyTracks(val mainActivity: MainActivity) {
         }
     }
 
+    private fun setUpdateInterval(newInterval: Long = prefUpdateInterval) {
+        updateInterval = newInterval
+        // TODO
+    }
+
     private fun schedule() {
         if (!::handler.isInitialized) {
             handler = Handler().apply {
@@ -164,8 +173,13 @@ class MapMyTracks(val mainActivity: MainActivity) {
                     } finally {
                         if (stopping && commands.size == 0)
                             stopping = false
-                        val interval = if (stopping) 10L else prefUpdateInterval * 1000L
-                        postDelayed(this, interval)
+                        val interval = when {
+                            updateInterval > 0L -> updateInterval
+                            stopping -> 10L
+                            else -> prefUpdateInterval
+                        }
+                        mainActivity.logError("next transmission in $interval s")
+                        postDelayed(this, interval * 1000L)
                     }
                 }
                 post(runnable)
@@ -281,6 +295,11 @@ class MapMyTracks(val mainActivity: MainActivity) {
         command.sending = true
         var request = object : StringRequest(Request.Method.POST, url,
                 Response.Listener {
+                    if (connectionLost) {
+                        mainActivity.logError("Regained connection to $url")
+                        connectionLost = false
+                    }
+                    setUpdateInterval()
                     if (command != commands[0]) throw IllegalStateException("response: wrong command")
                     command.sending = false
                     command.sent = true
@@ -318,6 +337,14 @@ class MapMyTracks(val mainActivity: MainActivity) {
                                         mainActivity.logError(url + it.toString() + "command:" + command.toString())
                                     }
                                 }
+                            } else if ("NoConnectionError" in it.toString()) {
+                                if (!connectionLost) {
+                                    mainActivity.logError("Lost connection to $url")
+                                    connectionLost = true
+                                }
+                                // double updateInterval up to 5 minutes
+                                val base = max(prefUpdateInterval, updateInterval)
+                                setUpdateInterval(min(base * 2, 300))
                             } else {
                                 mainActivity.logError( url + it.toString())
                             }
