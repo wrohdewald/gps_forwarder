@@ -145,6 +145,7 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
 
         sender = MapMyTracks(this)
         isSenderEnabled = sender.hasMmtId()  // if the previous app instance was abruptly killed, just continue
+        logStartStop("Activity $this new sender: $sender")
         if (isSenderEnabled)
             logStartStop("GPS Forwarder continuing after interruption")
         else

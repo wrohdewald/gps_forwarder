@@ -139,6 +139,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
         preferenceChanged(prefs, "")
         currentMmtId = mainActivity.restoreString("MmtId", noMmtId)
         running =  hasMmtId()
+        logStartStop("Ich bin MapMyTracks.init mit queue $queue")
     }
 
     fun hasMmtId() = currentMmtId != noMmtId
@@ -221,6 +222,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
     private fun gotMmtId(newId: String) {
         if (currentMmtId != newId) {
             currentMmtId = newId
+            logStartStop(("got new MmtId ${newId}"))
             mainActivity.saveString("MmtId",newId)
             if (newId != noMmtId)
                 commands.forEach { it.mmtId = newId }
@@ -234,6 +236,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
             stop_command.mmtId = currentMmtId
             stopping = true
             commands.add(stop_command)
+            logError("MMT.stop sets noMmtId")
             gotMmtId(noMmtId)
             running = false
         }

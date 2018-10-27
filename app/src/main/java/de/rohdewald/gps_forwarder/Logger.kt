@@ -174,7 +174,7 @@ internal class LogRecyclerAdapter(private val logLines: List<LogItem>) : Recycle
             if (column == 0) {
                 view.itemColumn.text = item.time.toLogString()
             } else if (column == 1) {
-                view.itemColumn.text = item.msg
+                view.itemColumn.text = "${item.tid} ${item.msg}"
             } else {
                 view.itemColumn.text = "Column $column"
             }
