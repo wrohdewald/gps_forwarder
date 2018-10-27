@@ -31,6 +31,8 @@ fun MainActivity.loggerPreferenceChanged() {
         logSpans = newSpans
         logColumns = logSpans.size
         invalidateView(logView)
+        if (logView != null)
+            logStartStop("text size $cellTextSize, column spans: $logSpans")
     }
 }
 
@@ -58,6 +60,7 @@ fun MainActivity.setupLogger(logView:RecyclerView) {
             scrollToEnd = totalItemCount == lastVisibleItemPosition + 1
         }
     })
+    logStartStop("initial text size $cellTextSize, column spans: $logSpans")
 }
 
 fun MainActivity.logStartStop(msg: String) = log(LogType.StartStop,msg)

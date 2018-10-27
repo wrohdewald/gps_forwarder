@@ -164,7 +164,6 @@ class MapMyTracks(val mainActivity: MainActivity) {
 
     private fun start(location: Location) {
         commands.add(SendStart(location))
-        mainActivity.logSend("MMT.start added ${commands[commands.size - 1]}")
         last_sent_location = location
         transmit()
     }

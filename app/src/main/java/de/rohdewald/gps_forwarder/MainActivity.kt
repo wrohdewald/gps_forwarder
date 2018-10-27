@@ -49,9 +49,9 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
     fun onClickStartStop(item: MenuItem) {
         isSenderEnabled = !isSenderEnabled
         if (isSenderEnabled) {
-            logStartStop("Transmission enabled")
+            logStartStop("Transmission started")
         } else {
-            logStartStop("Transmission disabled")
+            logStartStop("Transmission stopped")
             sender.stop()
         }
         invalidateOptionsMenu()
@@ -132,7 +132,7 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
         setContentView(R.layout.activity_main)
         setupLogger(logView)
         if (isSenderEnabled)
-            logStartStop("Contining after interruption")
+            logStartStop("GPS Forwarder continuing after interruption")
         else
             logStartStop("GPS Forwarder started")
         val manager : LocationManager? = getSystemService(Context.LOCATION_SERVICE) as LocationManager?
