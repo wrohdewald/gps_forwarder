@@ -199,7 +199,7 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
 
     override fun onBackPressed() {
         if (isSenderEnabled) {
-            Toast.makeText(this, "Please stop transmission first", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please stop forwarding first", Toast.LENGTH_SHORT).show()
         } else {
             super.onBackPressed()
         }

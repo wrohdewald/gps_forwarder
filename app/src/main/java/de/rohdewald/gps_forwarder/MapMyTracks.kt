@@ -126,8 +126,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
     lateinit private var password: String
     private var min_distance = 0
     private var max_ppt = 100
-    private var update_interval = 2L
-    private val noMmtId = "0"
+    private var prefUpdateInterval = 2L
     private var currentMmtId: String = noMmtId
     lateinit private var handler: Handler
 
@@ -165,7 +164,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
                     } finally {
                         if (stopping && commands.size == 0)
                             stopping = false
-                        val interval = if (stopping) 10L else update_interval * 1000L
+                        val interval = if (stopping) 10L else prefUpdateInterval * 1000L
                         postDelayed(this, interval)
                     }
                 }
@@ -180,7 +179,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
             username = prefs.getString("pref_key_username", "")
             password = prefs.getString("pref_key_password", "")
             altitudeAsCounter = prefs.getBoolean("pref_key_elevation_counter", false)
-            update_interval = prefs.getString("pref_key_update_interval", "9").toLong()
+            prefUpdateInterval = prefs.getString("pref_key_update_interval", "9").toLong()
             min_distance = prefs.getString("pref_key_min_distance", "2").toInt()
         }
     }
