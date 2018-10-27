@@ -1,6 +1,5 @@
 package de.rohdewald.gps_forwarder
 
-import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.location.Location
 import android.os.Handler
@@ -26,40 +25,40 @@ internal abstract class SendCommand(val location: Location?) {
     abstract val request: String
     abstract val expect: String
     var mmtId: String = noMmtId
-    val all_locations: MutableList<Location> = mutableListOf()
+    val allLocations: MutableList<Location> = mutableListOf()
 
-    abstract fun post_dict(): HashMap<String, String>
+    abstract fun postDict(): HashMap<String, String>
     protected fun formatLocation(): String {
         // as expected by the MapMyTracks protocol
-        move_first_location()
-        return when (all_locations.size) {
+        moveFirstLocation()
+        return when (allLocations.size) {
             0 -> ""
-            else -> all_locations.map { "${it.latitude} ${it.longitude} ${it.altitude} ${it.time / 1000}" }.joinToString(separator = " ")
+            else -> allLocations.map { "${it.latitude} ${it.longitude} ${it.altitude} ${it.time / 1000}" }.joinToString(separator = " ")
         }
     }
 
     override fun toString(): String {
-        move_first_location()
-        var result = "Command($request ${all_locations.size} points sending=$sending"
+        moveFirstLocation()
+        var result = "Command($request ${allLocations.size} points sending=$sending"
         if (mmtId != noMmtId) result += " mmtId=$mmtId"
         return result + ")"
     }
 
-    private fun move_first_location() {
-        if (location != null && all_locations.size == 0)
-            all_locations.add(location)
+    private fun moveFirstLocation() {
+        if (location != null && allLocations.size == 0)
+            allLocations.add(location)
     }
 
-    fun add_location(additional_location: Location) {
-        move_first_location()
-        all_locations.add(additional_location)
+    fun addLocation(additional_location: Location) {
+        moveFirstLocation()
+        allLocations.add(additional_location)
     }
 
     fun locationsToString() =
         if (altitudeAsCounter) {
-            "points " + all_locations.map { it.altitude.toInt() }.joinToString(separator=",")
+            "points " + allLocations.map { it.altitude.toInt() }.joinToString(separator=",")
         } else {
-            "${all_locations.size} points"
+            "${allLocations.size} points"
         }
 
     abstract fun toLogString(answer: String): String
@@ -69,7 +68,7 @@ internal abstract class SendCommand(val location: Location?) {
 internal class SendStart(location: Location?) : SendCommand(location) {
     override val request = "start_activity"
     override val expect = "activity_started"
-    override fun post_dict() = hashMapOf(
+    override fun postDict() = hashMapOf(
             "request" to request,
             "title" to "Ich bin ein Tütel",
             "privacy" to "private",
@@ -88,7 +87,7 @@ internal class SendStart(location: Location?) : SendCommand(location) {
 internal class SendUpdate(location: Location?) : SendCommand(location) {
     override val request = "update_activity"
     override val expect = "activity_updated"
-    override fun post_dict() = hashMapOf(
+    override fun postDict() = hashMapOf(
             "request" to request,
             "activity_id" to mmtId,
             "points" to formatLocation())
@@ -102,7 +101,7 @@ internal class SendUpdate(location: Location?) : SendCommand(location) {
 internal class SendStop(location: Location?) : SendCommand(location) {
     override val request = "stop_activity"
     override val expect = "activity_stopped"
-    override fun post_dict() = hashMapOf(
+    override fun postDict() = hashMapOf(
             "request" to request,
             "activity_id" to mmtId)
     override fun toLogString(answer: String): String {
@@ -124,12 +123,12 @@ class MapMyTracks(val mainActivity: MainActivity) {
     private lateinit var last_sent_location: Location
     private var location_count = 0.0
 
-    lateinit private var url: String
-    lateinit private var username: String
-    lateinit private var password: String
-    private var min_distance = 0
-    private var max_ppt = 100
+    lateinit private var prefUrl: String
+    lateinit private var prefUsername: String
+    lateinit private var prefPassword: String
+    private var prefMinDistance = 0
     private var prefUpdateInterval = 2L
+    private val maxPointsPerTransfer = 100
     private var updateInterval = 0L
     private var currentMmtId: String = noMmtId
     lateinit private var handler: Handler
@@ -149,7 +148,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
             location_count += 1
             location.altitude = location_count
         }
-        mainActivity.logGpsFix("GPS forwarded: ${location.toLog()}")
+        mainActivity.logGpsFix("GPS forwarded: ${location.toLogString()}")
 
         if (!running) {
             running = true
@@ -189,12 +188,12 @@ class MapMyTracks(val mainActivity: MainActivity) {
 
     fun preferenceChanged(prefs: SharedPreferences?, key: String?) {
         if (prefs != null) {
-            url = prefs.getString("pref_key_url", "")
-            username = prefs.getString("pref_key_username", "")
-            password = prefs.getString("pref_key_password", "")
+            prefUrl = prefs.getString("pref_key_url", "")
+            prefUsername = prefs.getString("pref_key_username", "")
+            prefPassword = prefs.getString("pref_key_password", "")
             altitudeAsCounter = prefs.getBoolean("pref_key_elevation_counter", false)
             prefUpdateInterval = prefs.getString("pref_key_update_interval", "9").toLong()
-            min_distance = prefs.getString("pref_key_min_distance", "2").toInt()
+            prefMinDistance = prefs.getString("pref_key_min_distance", "2").toInt()
         }
     }
 
@@ -214,7 +213,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
         if (::last_sent_location.isInitialized) {
             distance = location.distanceTo(last_sent_location)
         }
-        if (!stopping && distance >= min_distance) {
+        if (!stopping && distance >= prefMinDistance) {
             last_sent_location = location
             var upd_command = SendUpdate(location)
             upd_command.mmtId = currentMmtId
@@ -266,13 +265,13 @@ class MapMyTracks(val mainActivity: MainActivity) {
         if (is_sending()) return
         var new_command = commands[0]
         if (new_command is SendStop) return
-        if (new_command.all_locations.size >= max_ppt) return
+        if (new_command.allLocations.size >= maxPointsPerTransfer) return
         var added: MutableList<SendCommand> = mutableListOf()
         for (command in commands.subList(1, commands.size)) {
             if (command !is SendUpdate) continue
             if (command.location == null) continue
-            if (new_command.all_locations.size >= max_ppt) break
-            new_command.add_location(command.location)
+            if (new_command.allLocations.size >= maxPointsPerTransfer) break
+            new_command.addLocation(command.location)
             added.add(command)
         }
         commands = commands.filter { it !in added }.toMutableList()
@@ -293,10 +292,10 @@ class MapMyTracks(val mainActivity: MainActivity) {
         }
         command = commands[0]
         command.sending = true
-        var request = object : StringRequest(Request.Method.POST, url,
+        var request = object : StringRequest(Request.Method.POST, prefUrl,
                 Response.Listener {
                     if (connectionLost) {
-                        mainActivity.logError("Regained connection to $url")
+                        mainActivity.logError("Regained connection to $prefUrl")
                         connectionLost = false
                     }
                     setUpdateInterval()
@@ -332,30 +331,30 @@ class MapMyTracks(val mainActivity: MainActivity) {
                                 if (document != null) {
                                     var reason_item = document.getElementsByTagName("reason")
                                     if (reason_item.length != 0) {
-                                        mainActivity.logError(url + it.toString() + ": " + reason_item.item(0).textContent + " command:" + command.toString())
+                                        mainActivity.logError(prefUrl + it.toString() + ": " + reason_item.item(0).textContent + " command:" + command.toString())
                                     } else {
-                                        mainActivity.logError(url + it.toString() + "command:" + command.toString())
+                                        mainActivity.logError(prefUrl + it.toString() + "command:" + command.toString())
                                     }
                                 }
                             } else if ("NoConnectionError" in it.toString()) {
                                 if (!connectionLost) {
-                                    mainActivity.logError("Lost connection to $url")
+                                    mainActivity.logError("Lost connection to $prefUrl")
                                     connectionLost = true
                                 }
                                 // double updateInterval up to 5 minutes
                                 val base = max(prefUpdateInterval, updateInterval)
                                 setUpdateInterval(min(base * 2, 300))
                             } else {
-                                mainActivity.logError( url + it.toString())
+                                mainActivity.logError( prefUrl + it.toString())
                             }
                         }
                     }
                     if (mainActivity.isFinishing())
                         mainActivity.finishAndRemoveTask()
                 }) {
-            override fun getParams(): MutableMap<String, String> = command.post_dict()
+            override fun getParams(): MutableMap<String, String> = command.postDict()
             override fun getHeaders(): Map<String, String> = hashMapOf(
-                    "Authorization" to "Basic " + Base64.encodeToString("$username:$password".toByteArray(Charsets.UTF_8), Base64.DEFAULT))
+                    "Authorization" to "Basic " + Base64.encodeToString("$prefUsername:$prefPassword".toByteArray(Charsets.UTF_8), Base64.DEFAULT))
         }
         queue.add(request)
     }

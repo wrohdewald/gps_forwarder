@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.Manifest
 import android.location.Location
 import android.location.LocationManager
-import android.util.Log
 import android.content.pm.PackageManager
 import android.content.Context
 import android.content.Intent
@@ -16,7 +15,6 @@ import android.view.MenuItem
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.System.currentTimeMillis
-import java.text.SimpleDateFormat
 
 // TODO import android.net.ConnectivityManager.NetworkCallback
 
@@ -125,9 +123,9 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
             if (isSenderEnabled)
                 sender.send(location)
             else
-                logGpsFix("GPS ignored: ${location.toLog()}")
+                logGpsFix("GPS ignored: ${location.toLogString()}")
         } else {
-            logError("GPS from other source: ${location.provider} ${location.toLog()}")
+            logError("GPS from other source: ${location.provider} ${location.toLogString()}")
         }
     }
 

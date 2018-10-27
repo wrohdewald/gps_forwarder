@@ -14,11 +14,11 @@ fun ViewGroup.inflate(@LayoutRes layoutRes: Int, attachToRoot: Boolean = false):
 
 internal val timeFormat = SimpleDateFormat("HH:mm:ss.SSS")
 
-fun Date.toLog() = timeFormat.format(this)
+fun Date.toLogString() = timeFormat.format(this)
 
 
 
-fun Location.toLog(): String {
+fun Location.toLogString(): String {
     val fmt = SimpleDateFormat("YYYY dd.MM HH:mm:ss.SSS")
     val bootTime = java.lang.System.currentTimeMillis() - android.os.SystemClock.elapsedRealtime()
     val sysTime = Date()

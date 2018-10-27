@@ -1,18 +1,14 @@
 package de.rohdewald.gps_forwarder
 
-import android.content.Intent
 import android.graphics.Color
 import android.graphics.Color.rgb
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import java.util.Date
-import java.time.LocalDateTime
 import kotlinx.android.synthetic.main.log_row.view.*
 import kotlinx.android.synthetic.main.activity_main.*
 import android.support.v7.widget.GridLayoutManager
-import android.view.MenuItem
 
 fun MainActivity.loggerPreferenceChanged() {
     logThis = get_logThis()
@@ -82,9 +78,8 @@ enum class LogType(val type: Int = 0) {
                 LogType.valueOf(findValue)
             } catch (e: Exception) {
                 try {
-                    val it_int = findValue.toInt()
                     val type_array = LogType.values()
-                    type_array[it_int]
+                    type_array[findValue.toInt()]
                 } catch (e: Exception) {
                     LogType.Error
                 }
@@ -163,7 +158,7 @@ internal class LogRecyclerAdapter(private val logLines: List<LogItem>) : Recycle
             view.itemColumn.setTextSize(cellTextSize)
             val column = position % logColumns
             if (column == 0) {
-                view.itemColumn.text = item.time.toLog()
+                view.itemColumn.text = item.time.toLogString()
             } else if (column == 1) {
                 view.itemColumn.text = item.msg
             } else {
