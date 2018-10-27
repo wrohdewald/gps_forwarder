@@ -1,5 +1,6 @@
 package de.rohdewald.gps_forwarder
 
+import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Color.rgb
 import android.support.v7.widget.RecyclerView
@@ -9,6 +10,7 @@ import java.util.Date
 import kotlinx.android.synthetic.main.log_row.view.*
 import kotlinx.android.synthetic.main.activity_main.*
 import android.support.v7.widget.GridLayoutManager
+import android.util.DisplayMetrics
 
 fun MainActivity.loggerPreferenceChanged() {
     logThis = get_logThis()
@@ -28,8 +30,17 @@ fun MainActivity.loggerPreferenceChanged() {
         logSpans = newSpans
         logColumns = logSpans.size
         invalidateView(logView)
-        if (logView != null)
-            logStartStop("text size $cellTextSize, column spans: $logSpans")
+        logMetrics()
+    }
+}
+
+private fun MainActivity.logMetrics() {
+    if (logView != null) {
+        val portrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+        val widthDp = resources.configuration.screenWidthDp
+        val dm = DisplayMetrics()
+        windowManager.defaultDisplay.getMetrics(dm)
+        logStartStop("Text size $cellTextSize, ${if (portrait) "Portrait" else "Landscape"} width ${widthDp}dp, using column spans $logSpans")
     }
 }
 
@@ -57,7 +68,7 @@ fun MainActivity.setupLogger(logView:RecyclerView) {
             scrollToEnd = totalItemCount == lastVisibleItemPosition + 1
         }
     })
-    logStartStop("initial text size $cellTextSize, column spans: $logSpans")
+    logMetrics()
 }
 
 fun MainActivity.logStartStop(msg: String) = log(LogType.StartStop,msg)
