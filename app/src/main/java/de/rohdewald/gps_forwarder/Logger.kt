@@ -53,6 +53,7 @@ fun MainActivity.setupLogger(logView:RecyclerView) {
                 logSpans.subList(0, (position % logColumns)).sum()
 
     }
+    currentLogView = logView
     val gridLayoutManager = GridLayoutManager(this, logSpans.sum())
     logView.layoutManager = gridLayoutManager
     gridLayoutManager.spanSizeLookup = MySpanSizeLookup()
@@ -71,10 +72,10 @@ fun MainActivity.setupLogger(logView:RecyclerView) {
     logMetrics()
 }
 
-fun MainActivity.logStartStop(msg: String) = log(LogType.StartStop,msg)
-fun MainActivity.logGpsFix(msg: String) = log(LogType.GPS_Fix,msg)
-fun MainActivity.logSend(msg: String) = log(LogType.Send,msg)
-fun MainActivity.logError(msg: String) = log(LogType.Error,msg)
+fun logStartStop(msg: String) = log(LogType.StartStop,msg)
+fun logGpsFix(msg: String) = log(LogType.GPS_Fix,msg)
+fun logSend(msg: String) = log(LogType.Send,msg)
+fun logError(msg: String) = log(LogType.Error,msg)
 
 
 enum class LogType(val type: Int = 0) {
@@ -111,6 +112,8 @@ internal var logColumns = 2
 
 internal val logItems = mutableListOf<LogItem>()
 
+internal var currentLogView: RecyclerView? = null
+
 var scrollToEnd = true
 
 internal lateinit var logAdapter: LogRecyclerAdapter
@@ -122,12 +125,12 @@ internal fun invalidateView(view:RecyclerView?) =
             this.adapter.notifyDataSetChanged()
         }
 
-internal fun MainActivity.log(type: LogType, msg: String) {
+internal fun log(type: LogType, msg: String) {
     if (type in logThis) {
         logItems.add(LogItem(type, msg))
         logAdapter.notifyItemRangeInserted(logItems.size * logColumns - logColumns, logColumns)
         if (scrollToEnd)
-            logView.scrollToPosition(logAdapter.itemCount - 1)
+            currentLogView?.scrollToPosition(logAdapter.itemCount - 1)
     }
 }
 

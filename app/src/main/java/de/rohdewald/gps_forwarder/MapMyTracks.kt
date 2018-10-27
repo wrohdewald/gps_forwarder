@@ -144,7 +144,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
 
     fun send(location: Location) {
         schedule()
-        mainActivity.logGpsFix("GPS forwarded: ${location.toLogString()}")
+        logGpsFix("GPS forwarded: ${location.toLogString()}")
 
         if (!running) {
             running = true
@@ -173,7 +173,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
                             stopping -> 10L
                             else -> prefUpdateInterval
                         }
-                        mainActivity.logError("next transmission in $interval s")
+                        logError("next transmission in $interval s")
                         postDelayed(this, interval * 1000L)
                     }
                 }
@@ -251,7 +251,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
         try {
             return documentBuilder.parse(networkResponse.data.inputStream())
         } catch (e: Exception) {
-            mainActivity.logError(e.toString())
+            logError(e.toString())
             return null
         }
     }
@@ -283,7 +283,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
         if (is_sending()) return
         combine()
         if (commands.size == 0) {
-            mainActivity.logError("combine returns 0 commands")
+            logError("combine returns 0 commands")
             return
         }
         command = commands[0]
@@ -291,7 +291,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
         var request = object : StringRequest(Request.Method.POST, prefUrl,
                 Response.Listener {
                     if (connectionLost) {
-                        mainActivity.logError("Regained connection to $prefUrl")
+                        logError("Regained connection to $prefUrl")
                         connectionLost = false
                     }
                     setUpdateInterval()
@@ -303,13 +303,13 @@ class MapMyTracks(val mainActivity: MainActivity) {
                         var type_item = document.getElementsByTagName("type")
                         var answerForLog = type_item.item(0).textContent
                         if (type_item.length != 1 || type_item.item(0).textContent != command.expect) {
-                            mainActivity.logError("unexpected answer " + type_item.item(0) + " map=" + command.toString())
+                            logError("unexpected answer " + type_item.item(0) + " map=" + command.toString())
                         }
                         var id_item = document.getElementsByTagName("activity_id")
                         if (id_item.length != 0) {
                             gotMmtId(id_item.item(0).textContent)
                         }
-                        mainActivity.logSend(command.toLogString(answerForLog))
+                        logSend(command.toLogString(answerForLog))
                     }
                     commands = commands.drop(1).toMutableList()
                     if (!is_sending() && mainActivity.isFinishing())
@@ -319,7 +319,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
                     command.sending = false
                     when (it) {
                         is AuthFailureError -> {
-                            mainActivity.logError("Authorization failed")
+                            logError("Authorization failed")
                         }
                         else -> {
                             if (it.networkResponse != null) {
@@ -327,21 +327,21 @@ class MapMyTracks(val mainActivity: MainActivity) {
                                 if (document != null) {
                                     var reason_item = document.getElementsByTagName("reason")
                                     if (reason_item.length != 0) {
-                                        mainActivity.logError(prefUrl + it.toString() + ": " + reason_item.item(0).textContent + " command:" + command.toString())
+                                        logError(prefUrl + it.toString() + ": " + reason_item.item(0).textContent + " command:" + command.toString())
                                     } else {
-                                        mainActivity.logError(prefUrl + it.toString() + "command:" + command.toString())
+                                        logError(prefUrl + it.toString() + "command:" + command.toString())
                                     }
                                 }
                             } else if ("NoConnectionError" in it.toString()) {
                                 if (!connectionLost) {
-                                    mainActivity.logError("Lost connection to $prefUrl")
+                                    logError("Lost connection to $prefUrl")
                                     connectionLost = true
                                 }
                                 // double updateInterval up to 5 minutes
                                 val base = max(prefUpdateInterval, updateInterval)
                                 setUpdateInterval(min(base * 2, 300))
                             } else {
-                                mainActivity.logError( prefUrl + it.toString())
+                                logError( prefUrl + it.toString())
                             }
                         }
                     }
