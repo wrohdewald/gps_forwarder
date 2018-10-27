@@ -17,6 +17,7 @@ import kotlin.math.min
 private const val noMmtId = "0"
 
 var altitudeAsCounter = false
+var location_count = 0.0
 
 
 internal abstract class SendCommand(val location: Location?) {
@@ -121,7 +122,6 @@ class MapMyTracks(val mainActivity: MainActivity) {
     private var stopping = false
     private var connectionLost = false
     private lateinit var last_sent_location: Location
-    private var location_count = 0.0
 
     lateinit private var prefUrl: String
     lateinit private var prefUsername: String
@@ -144,10 +144,6 @@ class MapMyTracks(val mainActivity: MainActivity) {
 
     fun send(location: Location) {
         schedule()
-        if (altitudeAsCounter) {
-            location_count += 1
-            location.altitude = location_count
-        }
         mainActivity.logGpsFix("GPS forwarded: ${location.toLogString()}")
 
         if (!running) {

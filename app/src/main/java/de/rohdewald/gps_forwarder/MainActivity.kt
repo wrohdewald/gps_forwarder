@@ -97,6 +97,10 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
         logGpsFix("statusChanged: provider:" + provider + " status:" + status)
     }
     override fun onLocationChanged(location: Location) {
+        if (altitudeAsCounter) {
+            location_count += 1
+            location.altitude = location_count
+        }
         if (location.provider == "gps") {
             val hour = 1000L * 3600L
             val thisTime = currentTimeMillis()

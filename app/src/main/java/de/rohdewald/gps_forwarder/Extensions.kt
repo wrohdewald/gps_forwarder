@@ -23,6 +23,6 @@ fun Location.toLogString(): String {
     val bootTime = java.lang.System.currentTimeMillis() - android.os.SystemClock.elapsedRealtime()
     val sysTime = Date()
     val gpsEtToTime = bootTime + elapsedRealtimeNanos / 1000000L
-    val altct = if (altitudeAsCounter) " ${altitude.toString()}" else ""
+    val altct = if (altitudeAsCounter) " ${altitude.toInt()}" else ""
     return "Systime ${fmt.format(sysTime)} location.time ${fmt.format(time)} bootTime ${fmt.format(bootTime)} gpsEtToTime ${fmt.format(gpsEtToTime)} ${"%.6f".format(latitude)} ${"%.6f".format(longitude)}$altct"
 }
