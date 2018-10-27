@@ -22,10 +22,10 @@
         android:title="@string/tail_action_title"
         app:showAsAction="ifRoom" />
     <item
-        android:title="Settings"
+        android:title="@string/menu_settings_label"
         android:onClick="onClickSettings" />
     <item
-        android:title="Help" />
+        android:title="@string/menu_help_label" />
     <item
-        android:title="About" />
+        android:title="@string/menu_about_label" />
 </menu>
