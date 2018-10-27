@@ -134,8 +134,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
     init {
         val prefs = PreferenceManager.getDefaultSharedPreferences(mainActivity)
         preferenceChanged(prefs, "")
-        val private_prefs = mainActivity.getPreferences(MODE_PRIVATE)
-        currentMmtId = private_prefs.getString("MmtId", noMmtId)
+        currentMmtId = mainActivity.restoreString("MmtId", noMmtId)
         running =  hasMmtId()
     }
 
@@ -213,10 +212,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
     private fun gotMmtId(newId: String) {
         if (currentMmtId != newId) {
             currentMmtId = newId
-            val preferences = mainActivity.getPreferences(MODE_PRIVATE)
-            val editor = preferences.edit()
-            editor.putString("MmtId", newId)
-            editor.commit()
+            mainActivity.saveString("MmtId",newId)
             if (newId != noMmtId)
                 commands.forEach { it.mmtId = newId }
         }
