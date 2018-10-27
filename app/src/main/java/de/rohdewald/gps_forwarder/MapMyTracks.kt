@@ -133,11 +133,12 @@ class MapMyTracks(val mainActivity: MainActivity) {
     private var updateInterval = 0L
     private var currentMmtId: String = noMmtId
     lateinit private var handler: Handler
+    lateinit var prefs: SharedPreferences
 
     init {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(mainActivity)
+        prefs = PreferenceManager.getDefaultSharedPreferences(mainActivity)
         preferenceChanged(prefs, "")
-        currentMmtId = mainActivity.restoreString("MmtId", noMmtId)
+        currentMmtId = prefs.getString("MmtId", noMmtId)
         running =  hasMmtId()
         logStartStop("Ich bin MapMyTracks.init mit queue $queue")
     }
@@ -186,6 +187,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
 
     fun preferenceChanged(prefs: SharedPreferences?, key: String?) {
         if (prefs != null) {
+            // TODO: do we come here after edit()/commit() ? If so, so what ...
             prefUrl = prefs.getString("pref_key_url", "")
             prefUsername = prefs.getString("pref_key_username", "")
             prefPassword = prefs.getString("pref_key_password", "")
@@ -223,7 +225,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
         if (currentMmtId != newId) {
             currentMmtId = newId
             logStartStop(("got new MmtId ${newId}"))
-            mainActivity.saveString("MmtId",newId)
+            prefs.putString("MmtId",newId)
             if (newId != noMmtId)
                 commands.forEach { it.mmtId = newId }
         }

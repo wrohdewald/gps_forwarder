@@ -38,7 +38,6 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
     private var prevAppliedTimeDelta = 0
     var isSenderEnabled = false
     private var currentMenu: Menu? = null
-    lateinit var private_prefs : SharedPreferences
 
     fun onClickSettings(item: MenuItem) {
         val intent = Intent(this, SettingsActivity::class.java)
@@ -67,18 +66,10 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
     }
 
     fun onClickTail(item: MenuItem) {
-        // I would want this as an extension in Logger.kt but then
-        // the inflater will not find it at runtime
+        // I would like this to be an extension in Logger.kt but then
+        // the resource inflater will not find it at runtime
         scrollToEnd = true
     }
-
-    fun saveString(key: String, value:String) =
-        private_prefs.edit()?.apply {
-            putString(key,value)
-            commit()
-        }
-
-    fun restoreString(key: String, default: String) = private_prefs.getString(key, default)
 
     override fun onResume() {
         super.onResume()
@@ -138,7 +129,6 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
         super.onCreate(savedInstanceState)
         prefs = PreferenceManager.getDefaultSharedPreferences(this)
         prefs.registerOnSharedPreferenceChangeListener(this)  // when starting, onResume is never called
-        private_prefs = getPreferences(MODE_PRIVATE)
         loggerPreferenceChanged()
         setContentView(R.layout.activity_main)
         setupLogger(logView)

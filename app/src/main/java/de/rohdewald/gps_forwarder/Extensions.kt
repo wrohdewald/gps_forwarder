@@ -1,5 +1,6 @@
 package de.rohdewald.gps_forwarder
 
+import android.content.SharedPreferences
 import android.location.Location
 import android.support.annotation.LayoutRes
 import android.view.LayoutInflater
@@ -26,3 +27,9 @@ fun Location.toLogString(): String {
     val altct = if (altitudeAsCounter) " ${altitude.toInt()}" else ""
     return "Systime ${fmt.format(sysTime)} location.time ${fmt.format(time)} bootTime ${fmt.format(bootTime)} gpsEtToTime ${fmt.format(gpsEtToTime)} ${"%.6f".format(latitude)} ${"%.6f".format(longitude)}$altct"
 }
+
+fun SharedPreferences.putString(key: String, value:String) =
+        edit()?.apply {
+            putString(key,value)
+            commit()
+        }
