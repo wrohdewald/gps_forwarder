@@ -140,11 +140,11 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
         prefs.registerOnSharedPreferenceChangeListener(this)  // when starting, onResume is never called
         private_prefs = getPreferences(MODE_PRIVATE)
         loggerPreferenceChanged()
+        setContentView(R.layout.activity_main)
+        setupLogger(logView)
 
         sender = MapMyTracks(this)
         isSenderEnabled = sender.hasMmtId()  // if the previous app instance was abruptly killed, just continue
-        setContentView(R.layout.activity_main)
-        setupLogger(logView)
         if (isSenderEnabled)
             logStartStop("GPS Forwarder continuing after interruption")
         else
