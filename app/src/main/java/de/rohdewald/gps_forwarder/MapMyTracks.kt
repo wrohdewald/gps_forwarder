@@ -27,6 +27,7 @@ internal abstract class SendCommand(val location: Location?) {
     abstract val expect: String
     var mmtId: String = noMmtId
     val allLocations: MutableList<Location> = mutableListOf()
+    var queueTime: Date? = null
 
     abstract fun postDict(): HashMap<String, String>
     protected fun formatLocation(): String {
@@ -316,6 +317,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
                         mainActivity.finishAndRemoveTask()
                 },
                 Response.ErrorListener {
+                    // TODO: use now() - command.queueTime for log
                     command.sending = false
                     when (it) {
                         is AuthFailureError -> {
@@ -353,5 +355,6 @@ class MapMyTracks(val mainActivity: MainActivity) {
                     "Authorization" to "Basic " + Base64.encodeToString("$prefUsername:$prefPassword".toByteArray(Charsets.UTF_8), Base64.DEFAULT))
         }
         queue.add(request)
+        command.queueTime = Date()
     }
 }
