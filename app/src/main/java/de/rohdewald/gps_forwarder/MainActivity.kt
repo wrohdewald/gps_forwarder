@@ -70,7 +70,7 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
     fun onClickTail(item: MenuItem) {
         // I would want this as an extension in Logger.kt but then
         // the inflater will not find it at runtime
-        logView.scrollToPosition(logAdapter.itemCount - 1)
+        scrollToEnd = true
     }
 
     override fun onResume() {

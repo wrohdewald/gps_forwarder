@@ -105,7 +105,7 @@ internal var logColumns = 2
 
 internal val logItems = mutableListOf<LogItem>()
 
-internal var scrollToEnd = true
+var scrollToEnd = true
 
 internal lateinit var logAdapter: LogRecyclerAdapter
 
