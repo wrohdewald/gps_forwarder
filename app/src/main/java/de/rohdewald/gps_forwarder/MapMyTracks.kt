@@ -355,6 +355,7 @@ class MapMyTracks(val context: Context) {
             override fun getHeaders(): Map<String, String> = hashMapOf(
                     "Authorization" to "Basic " + Base64.encodeToString("$prefUsername:$prefPassword".toByteArray(Charsets.UTF_8), Base64.DEFAULT))
         }
+        request.retryPolicy = DefaultRetryPolicy(10000,DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
         queue.add(request)
         command.queueTime = System.currentTimeMillis()
     }
