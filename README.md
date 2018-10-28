@@ -8,3 +8,9 @@ This app does not determine locations by itself. But whenever any other app gets
 Still missing:
 - installable from F-Droid
 - internationalization
+
+ABOUT PRIVACY
+=============
+
+This app only sends data as defined by https://github.com/MapMyTracks/api. It only sends the data
+to the server configured by you in the settings.
