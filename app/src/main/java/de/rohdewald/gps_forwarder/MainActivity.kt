@@ -1,15 +1,15 @@
 package de.rohdewald.gps_forwarder
 
-import android.support.v7.app.AppCompatActivity
-import android.os.Bundle
 import android.Manifest
-import android.location.Location
-import android.location.LocationManager
-import android.content.pm.PackageManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
+import android.os.Bundle
 import android.preference.PreferenceManager
+import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -27,13 +27,15 @@ class SenderSingleton constructor(val context: Context) {
     companion object {
         @Volatile
         private var INSTANCE: SenderSingleton? = null
+
         fun getInstance(context: Context) =
                 INSTANCE ?: synchronized(this) {
                     INSTANCE ?: SenderSingleton(context).also {
                         INSTANCE = it
                     }
                 }
-        fun exists() =  INSTANCE != null
+
+        fun exists() = INSTANCE != null
     }
 
 
@@ -54,7 +56,7 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
 
     private val got_permission = 1234
     lateinit private var mLocationManager: LocationManager
-    private lateinit var sender : MapMyTracks
+    private lateinit var sender: MapMyTracks
     lateinit var prefs: SharedPreferences
     var prevLocationTime = 0L
     private var prevAppliedTimeDelta = 0
@@ -110,7 +112,7 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
         if (location.provider == "gps") {
             val hour = 1000L * 3600L
             val thisTime = currentTimeMillis()
-            fun deltaHours() = (thisTime - location.time) /  hour
+            fun deltaHours() = (thisTime - location.time) / hour
 
             // for whatever reason we are sometimes getting the same location several times.
             // Maybe some interaction between the android studio debugger and the app?
@@ -157,7 +159,7 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
             } else
                 logStartStop("GPS Forwarder started")
         }
-        val manager : LocationManager? = getSystemService(Context.LOCATION_SERVICE) as LocationManager?
+        val manager: LocationManager? = getSystemService(Context.LOCATION_SERVICE) as LocationManager?
         if (manager == null) {
             logError("Cannot get a LocationManager")
             finishAndRemoveTask()
@@ -168,7 +170,7 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
     }
 
     override fun onRequestPermissionsResult(requestCode: Int,
-            permissions: Array<String>, grantResults: IntArray) {
+                                            permissions: Array<String>, grantResults: IntArray) {
         when (requestCode) {
             got_permission -> {
                 // If request is cancelled, the result arrays are empty.
@@ -197,13 +199,13 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
     }
 
     private fun updateActionBar() {
-            currentMenu?.findItem(R.id.start_action)?.setVisible(!sender.isEnabled)
-            currentMenu?.findItem(R.id.stop_action)?.setVisible(sender.isEnabled)
+        currentMenu?.findItem(R.id.start_action)?.setVisible(!sender.isEnabled)
+        currentMenu?.findItem(R.id.stop_action)?.setVisible(sender.isEnabled)
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-            currentMenu = menu
-            updateActionBar()
+        currentMenu = menu
+        updateActionBar()
         return super.onPrepareOptionsMenu(menu)
     }
 

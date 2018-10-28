@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.*
 import kotlin.math.abs
 
 fun ViewGroup.inflate(@LayoutRes layoutRes: Int, attachToRoot: Boolean = false): View {
@@ -17,7 +17,6 @@ fun ViewGroup.inflate(@LayoutRes layoutRes: Int, attachToRoot: Boolean = false):
 internal val timeFormat = SimpleDateFormat("HH:mm:ss.SSS")
 
 fun Date.toLogString() = timeFormat.format(this)
-
 
 
 fun Location.toLogString(): String {
@@ -35,9 +34,8 @@ fun Location.toLogString(): String {
 }
 
 
-
-fun SharedPreferences.putString(key: String, value:String) =
+fun SharedPreferences.putString(key: String, value: String) =
         edit()?.apply {
-            putString(key,value)
+            putString(key, value)
             commit()
         }

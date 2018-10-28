@@ -6,12 +6,13 @@ import android.location.Location
 import android.os.Handler
 import android.preference.PreferenceManager
 import android.util.Base64
-import com.android.volley.toolbox.*
 import com.android.volley.*
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
 import org.w3c.dom.Document
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.util.*
 import java.text.SimpleDateFormat
+import java.util.*
+import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.math.max
 import kotlin.math.min
 
@@ -51,9 +52,9 @@ internal abstract class SendCommand(val location: Location?) {
     }
 
     fun durationString() =
-        if (queueTime > 0L)
-            " in ${System.currentTimeMillis() - queueTime}ms"
-        else ""
+            if (queueTime > 0L)
+                " in ${System.currentTimeMillis() - queueTime}ms"
+            else ""
 
     private fun moveFirstLocation() {
         if (location != null && allLocations.size == 0)
@@ -66,11 +67,11 @@ internal abstract class SendCommand(val location: Location?) {
     }
 
     fun locationsToString() =
-        if (altitudeAsCounter) {
-            "points " + allLocations.map { it.altitude.toInt() }.joinToString(separator=",")
-        } else {
-            "${allLocations.size} points"
-        }
+            if (altitudeAsCounter) {
+                "points " + allLocations.map { it.altitude.toInt() }.joinToString(separator = ",")
+            } else {
+                "${allLocations.size} points"
+            }
 
     abstract fun toLogStringCore(answer: String): String
 
@@ -89,6 +90,7 @@ internal class SendStart(location: Location?) : SendCommand(location) {
             "source" to "gps_forwarder",
             "version" to "${BuildConfig.VERSION_NAME} ${BuildConfig.VERSION_CODE}",
             "points" to formatLocation())
+
     override fun toLogStringCore(answer: String) = "started, ${locationsToString()} forwarded"
 }
 
@@ -99,6 +101,7 @@ internal class SendUpdate(location: Location?) : SendCommand(location) {
             "request" to request,
             "activity_id" to mmtId,
             "points" to formatLocation())
+
     override fun toLogStringCore(answer: String) = "${locationsToString()} forwarded"
 }
 
@@ -108,6 +111,7 @@ internal class SendStop(location: Location?) : SendCommand(location) {
     override fun postDict() = hashMapOf(
             "request" to request,
             "activity_id" to mmtId)
+
     override fun toLogStringCore(answer: String) = "Forwarding stopped"
 }
 
@@ -136,13 +140,13 @@ class MapMyTracks(val context: Context) {
         prefs = PreferenceManager.getDefaultSharedPreferences(context)
         preferenceChanged(prefs)
         currentMmtId = prefs.getString("MmtId", noMmtId)
-        running =  hasMmtId()
+        running = hasMmtId()
     }
 
     fun hasMmtId() = currentMmtId != noMmtId
 
     private fun queueCommand(command: SendCommand) {
-        if (command.allLocations.size > 0 )
+        if (command.allLocations.size > 0)
             logSend("GPS queued: ${command.locationsToString()}")
         commands.add(command)
     }
@@ -156,7 +160,7 @@ class MapMyTracks(val context: Context) {
         } else {
             update(location)
             if (!connectionLost)
-                    schedule()
+                schedule()
         }
     }
 
@@ -182,7 +186,7 @@ class MapMyTracks(val context: Context) {
                         // ignore old handler events
                     }
                 }
-                postDelayed(runnable,updateInterval)
+                postDelayed(runnable, updateInterval)
             }
         }
     }
@@ -226,7 +230,7 @@ class MapMyTracks(val context: Context) {
         if (currentMmtId != newId) {
             currentMmtId = newId
             logStartStop(("got new MmtId ${newId}"))
-            prefs.putString("MmtId",newId)
+            prefs.putString("MmtId", newId)
             if (newId != noMmtId)
                 commands.forEach { it.mmtId = newId }
         }
@@ -349,9 +353,10 @@ class MapMyTracks(val context: Context) {
                                 } else {
                                     logError("Connection still lost")
                                 }
-                                    // double updateInterval up to 5 minutes
-                                    val base = max(1000L * prefUpdateInterval, updateInterval)
-                                    schedule(min(base * 2, 300L * 1000L))
+
+                                // double updateInterval up to 5 minutes
+                                val base = max(1000L * prefUpdateInterval, updateInterval)
+                                schedule(min(base * 2, 300L * 1000L))
 
                             } else {
                                 logError("$prefUrl: $it for $command")
@@ -363,7 +368,7 @@ class MapMyTracks(val context: Context) {
             override fun getHeaders(): Map<String, String> = hashMapOf(
                     "Authorization" to "Basic " + Base64.encodeToString("$prefUsername:$prefPassword".toByteArray(Charsets.UTF_8), Base64.DEFAULT))
         }
-        request.retryPolicy = DefaultRetryPolicy(10000,DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
+        request.retryPolicy = DefaultRetryPolicy(10000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
         queue.add(request)
         command.queueTime = System.currentTimeMillis()
     }

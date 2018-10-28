@@ -3,18 +3,28 @@ package de.rohdewald.gps_forwarder
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Color.rgb
+import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.util.DisplayMetrics
 import android.view.View
 import android.view.ViewGroup
-import java.util.Date
-import kotlinx.android.synthetic.main.log_row.view.*
 import kotlinx.android.synthetic.main.activity_main.*
-import android.support.v7.widget.GridLayoutManager
-import android.util.DisplayMetrics
+import kotlinx.android.synthetic.main.log_row.view.*
+import java.util.Date
+import kotlin.collections.HashSet
+import kotlin.collections.List
+import kotlin.collections.Set
+import kotlin.collections.listOf
+import kotlin.collections.map
+import kotlin.collections.mutableListOf
+import kotlin.collections.setOf
+import kotlin.collections.sum
+import kotlin.collections.toMutableList
+import kotlin.collections.toSet
 
 fun MainActivity.loggerPreferenceChanged() {
     logThis = get_logThis()
-    val newCellTextSize =  prefs.getString("pref_key_fontsize", "12").toFloat()
+    val newCellTextSize = prefs.getString("pref_key_fontsize", "12").toFloat()
     val arrayId = when (newCellTextSize.toInt()) {
         8 -> R.array.logSpans8
         10 -> R.array.logSpans10
@@ -44,8 +54,8 @@ private fun MainActivity.logMetrics() {
     }
 }
 
-fun MainActivity.setupLogger(logView:RecyclerView) {
-    class MySpanSizeLookup: GridLayoutManager.SpanSizeLookup() {
+fun MainActivity.setupLogger(logView: RecyclerView) {
+    class MySpanSizeLookup : GridLayoutManager.SpanSizeLookup() {
         override fun getSpanSize(position: Int) = logSpans[position % logColumns]
 
         // we can optimize this because we know all rows have the same number of items
@@ -72,10 +82,10 @@ fun MainActivity.setupLogger(logView:RecyclerView) {
     logMetrics()
 }
 
-fun logStartStop(msg: String) = log(LogType.StartStop,msg)
-fun logGpsFix(msg: String) = log(LogType.GPS_Fix,msg)
-fun logSend(msg: String) = log(LogType.Send,msg)
-fun logError(msg: String) = log(LogType.Error,msg)
+fun logStartStop(msg: String) = log(LogType.StartStop, msg)
+fun logGpsFix(msg: String) = log(LogType.GPS_Fix, msg)
+fun logSend(msg: String) = log(LogType.Send, msg)
+fun logError(msg: String) = log(LogType.Error, msg)
 
 
 enum class LogType(val type: Int = 0) {
@@ -97,7 +107,8 @@ enum class LogType(val type: Int = 0) {
                 }
             }
         }
-        fun from(values: Set<String>) : Set<LogType> {
+
+        fun from(values: Set<String>): Set<LogType> {
             return values.map { LogType.from(it) }.toSet()
         }
     }
@@ -107,7 +118,7 @@ enum class LogType(val type: Int = 0) {
 // The rest is internal
 
 // this must correspond to what bindRow() does
-internal var logSpans : List<Int> = listOf()
+internal var logSpans: List<Int> = listOf()
 internal var logColumns = 2
 
 internal val logItems = mutableListOf<LogItem>()
@@ -118,7 +129,7 @@ var scrollToEnd = true
 
 internal lateinit var logAdapter: LogRecyclerAdapter
 
-internal fun invalidateView(view:RecyclerView?) =
+internal fun invalidateView(view: RecyclerView?) =
         view?.apply {
             recycledViewPool.clear()
             invalidate()
@@ -134,7 +145,7 @@ internal fun log(type: LogType, msg: String) {
     }
 }
 
-internal fun MainActivity.get_logThis() : Set<LogType> {
+internal fun MainActivity.get_logThis(): Set<LogType> {
     var foundSettings = prefs.getStringSet("pref_key_log", HashSet<String>())
     return LogType.from(foundSettings)
 }
@@ -165,7 +176,7 @@ internal class LogRecyclerAdapter(private val logLines: List<LogItem>) : Recycle
             val color = when (item.type) {
                 LogType.Error -> Color.RED
                 LogType.GPS_Fix -> Color.BLUE
-                LogType.Send -> rgb(0,87,74) // 0x00574a
+                LogType.Send -> rgb(0, 87, 74) // 0x00574a
                 LogType.StartStop -> Color.BLACK
             }
             view.itemColumn.setTextColor(color)
