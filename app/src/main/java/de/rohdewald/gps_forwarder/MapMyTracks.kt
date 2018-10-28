@@ -16,6 +16,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 private const val noMmtId = "0"
+private const val pingInterval = 60000L // even if the positions are all within prefMinDistance send one at least every X ms
 
 var altitudeAsCounter = false
 var location_count = 0.0
@@ -212,7 +213,7 @@ class MapMyTracks(val context: Context) {
         if (::last_sent_location.isInitialized) {
             distance = location.distanceTo(last_sent_location)
         }
-        if (distance >= prefMinDistance) {
+        if (distance >= prefMinDistance || System.currentTimeMillis() - last_sent_location.time > pingInterval) {
             last_sent_location = location
             var upd_command = SendUpdate(location)
             upd_command.mmtId = currentMmtId
