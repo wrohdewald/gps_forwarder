@@ -16,9 +16,6 @@ import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.System.currentTimeMillis
 
-// TODO import android.net.ConnectivityManager.NetworkCallback
-
-
 // TODO: if (!PowerManager.isIgnoringBatteryOptimizations (String packageName))
 // fire intent android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS
 
