@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto" >
 
     <item
-        android:id="@+id/startstop_action"
-        android:checkable="true"
-        android:onClick="onClickStartStop"
-        android:icon="@mipmap/ic_action_start"
-        android:title="@string/startstop_action_title"
-        app:showAsAction="always" />
+        android:id="@+id/start_action"
+        android:onClick="onClickStart"
+        android:title="@string/start_action_title"
+        android:icon="@drawable/ic_media_play_dark"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/stop_action"
+        android:onClick="onClickStop"
+        android:title="@string/stop_action_title"
+        android:icon="@drawable/ic_media_stop_dark"
+        app:showAsAction="ifRoom" />
     <item
         android:title="Settings"
         android:onClick="onClickSettings" />

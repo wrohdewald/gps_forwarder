@@ -39,22 +39,26 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
     var prevLocationTime = 0L
     private var prevAppliedTimeDelta = 0
     var isSenderEnabled = false
+    private var currentMenu: Menu? = null
 
     fun onClickSettings(item: MenuItem) {
         val intent = Intent(this, SettingsActivity::class.java)
         startActivity(intent)
 
     }
+// TODO: nach Drehen ist StartStop Icon falsch
 
-    fun onClickStartStop(item: MenuItem) {
-        isSenderEnabled = !isSenderEnabled
-        if (isSenderEnabled) {
-            logStartStop("Transmission started")
-        } else {
-            logStartStop("Transmission stopped")
-            sender.stop()
-        }
-        invalidateOptionsMenu()
+    fun onClickStart(item: MenuItem) {
+        isSenderEnabled = true
+        logStartStop("Forwarding started")
+        updateActionBar()
+    }
+
+    fun onClickStop(item: MenuItem) {
+        isSenderEnabled = false
+        logStartStop("Forwarding stopped")
+        sender.stop()
+        updateActionBar()
     }
 
     override fun onDestroy() {
@@ -125,10 +129,11 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
         // TODO: kommt hier nie durch, wenn im Handy Lokalisation aus ist
         super.onCreate(savedInstanceState)
         prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        sender = MapMyTracks(this)
-        loggerPreferenceChanged()
-        isSenderEnabled = sender.hasMmtId()  // if the previous app instance was abruptly killed, just continue
         prefs.registerOnSharedPreferenceChangeListener(this)  // when starting, onResume is never called
+        loggerPreferenceChanged()
+
+        sender = MapMyTracks(this)
+        isSenderEnabled = sender.hasMmtId()  // if the previous app instance was abruptly killed, just continue
         setContentView(R.layout.activity_main)
         setupLogger(logView)
         if (isSenderEnabled)
@@ -170,16 +175,18 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main, menu)
-        return true
+        updateActionBar()
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    private fun updateActionBar() {
+            currentMenu?.findItem(R.id.start_action)?.setVisible(!isSenderEnabled)
+            currentMenu?.findItem(R.id.stop_action)?.setVisible(isSenderEnabled)
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        if (menu != null) {
-            var item = menu.findItem(R.id.startstop_action)
-            if (item != null) {
-                item.setIcon(getDrawable(if (isSenderEnabled) R.mipmap.ic_action_stop else R.mipmap.ic_action_start))
-            }
-        }
+            currentMenu = menu
+            updateActionBar()
         return super.onPrepareOptionsMenu(menu)
     }
 

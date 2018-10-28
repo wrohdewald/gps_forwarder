@@ -12,6 +12,7 @@ import java.time.LocalDateTime
 import kotlinx.android.synthetic.main.log_row.view.*
 import kotlinx.android.synthetic.main.activity_main.*
 import android.support.v7.widget.GridLayoutManager
+import android.view.MenuItem
 
 fun MainActivity.loggerPreferenceChanged() {
     logThis = get_logThis()
