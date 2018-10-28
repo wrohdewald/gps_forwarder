@@ -11,8 +11,6 @@ import android.util.Log
 import kotlinx.android.synthetic.main.*
 
 
-// TODO proper default settings. Why do I have to define them twice?
-
 class SettingsActivity : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
     lateinit var fragment: PreferenceFragment
     lateinit var prefs: SharedPreferences
