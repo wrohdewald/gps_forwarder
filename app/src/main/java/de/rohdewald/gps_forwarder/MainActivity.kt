@@ -65,7 +65,6 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
         startActivity(intent)
 
     }
-// TODO: nach Drehen ist StartStop Icon falsch
 
     fun onClickStart(item: MenuItem) {
         sender.isEnabled = true
@@ -141,7 +140,6 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // TODO: kommt hier nie durch, wenn im Handy Lokalisation aus ist
         super.onCreate(savedInstanceState)
         prefs = PreferenceManager.getDefaultSharedPreferences(this)
         prefs.registerOnSharedPreferenceChangeListener(this)  // when starting, onResume is never called
