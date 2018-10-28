@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
 
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-        sender.preferenceChanged(sharedPreferences, key)
+        sender.preferenceChanged(sharedPreferences)
         loggerPreferenceChanged()
     }
 

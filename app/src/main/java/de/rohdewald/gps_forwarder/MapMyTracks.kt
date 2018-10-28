@@ -137,7 +137,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
 
     init {
         prefs = PreferenceManager.getDefaultSharedPreferences(mainActivity)
-        preferenceChanged(prefs, "")
+        preferenceChanged(prefs)
         currentMmtId = prefs.getString("MmtId", noMmtId)
         running =  hasMmtId()
         logStartStop("Ich bin MapMyTracks.init mit queue $queue")
@@ -185,7 +185,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
         }
     }
 
-    fun preferenceChanged(prefs: SharedPreferences?, key: String?) {
+    fun preferenceChanged(prefs: SharedPreferences?) {
         if (prefs != null) {
             // TODO: do we come here after edit()/commit() ? If so, so what ...
             prefUrl = prefs.getString("pref_key_url", "")
