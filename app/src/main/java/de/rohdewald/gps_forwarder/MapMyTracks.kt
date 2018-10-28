@@ -117,7 +117,6 @@ class MapMyTracks(val context: Context) {
     private var commands: MutableList<SendCommand> = mutableListOf()
     var isEnabled = false
     private var running = false
-    private var stopping = false
     private var connectionLost = false
     private lateinit var last_sent_location: Location
 
@@ -129,7 +128,7 @@ class MapMyTracks(val context: Context) {
     private val maxPointsPerTransfer = 100
     private var updateInterval = 0L
     private var currentMmtId: String = noMmtId
-    lateinit private var handler: Handler
+    lateinit private var currentHandler: Handler
     var prefs: SharedPreferences
 
     init {
@@ -143,38 +142,37 @@ class MapMyTracks(val context: Context) {
     fun hasMmtId() = currentMmtId != noMmtId
 
     fun send(location: Location) {
-        schedule()
         logGpsFix("GPS forwarded: ${location.toLogString()}")
 
         if (!running) {
             running = true
             start(location)
+            schedule(10L)
         } else {
             update(location)
+            schedule()
         }
     }
 
-    private fun setUpdateInterval(newInterval: Long = prefUpdateInterval) {
-        updateInterval = newInterval
-        // TODO
-    }
-
-    private fun schedule() {
-        if (!::handler.isInitialized) {
-            handler = Handler().apply {
+    private fun schedule(newInterval: Long = 1000L * prefUpdateInterval) {
+        // newInterval in ms.
+        // 0L: do not schedule anymore
+        // if this is a new interval, do not currentHandler.postDelayed() but
+        // create a new currentHandler and use that one from now on. After the
+        // latest event from the old currentHandler happens, it will stay silent.
+        if (newInterval != updateInterval) {
+            updateInterval = newInterval
+            currentHandler = Handler().apply {
+                val thisHandler = this
                 val runnable = object : Runnable {
                     override fun run() = try {
                         transmit()
                     } finally {
-                        if (stopping && commands.size == 0)
-                            stopping = false
-                        val interval = when {
-                            updateInterval > 0L -> updateInterval
-                            stopping -> 10L
-                            else -> prefUpdateInterval
+                        if (thisHandler == currentHandler && updateInterval > 0L) {
+                            // just let previous handlers run out when their queue is empty
+                            logSend("${currentHandler} next transmission in $updateInterval ms")
+                            postDelayed(this, updateInterval)
                         }
-                        logError("next transmission in $interval s")
-                        postDelayed(this, interval * 1000L)
                     }
                 }
                 post(runnable)
@@ -184,7 +182,6 @@ class MapMyTracks(val context: Context) {
 
     fun preferenceChanged(prefs: SharedPreferences?) {
         if (prefs != null) {
-            // TODO: do we come here after edit()/commit() ? If so, so what ...
             prefUrl = prefs.getString("pref_key_url", "")
             prefUsername = prefs.getString("pref_key_username", "")
             prefPassword = prefs.getString("pref_key_password", "")
@@ -210,7 +207,7 @@ class MapMyTracks(val context: Context) {
         if (::last_sent_location.isInitialized) {
             distance = location.distanceTo(last_sent_location)
         }
-        if (!stopping && distance >= prefMinDistance) {
+        if (distance >= prefMinDistance) {
             last_sent_location = location
             var upd_command = SendUpdate(location)
             upd_command.mmtId = currentMmtId
@@ -230,14 +227,13 @@ class MapMyTracks(val context: Context) {
 
     fun stop() {
         if (currentMmtId != noMmtId) {
-            schedule()
             var stop_command = SendStop(null)
             stop_command.mmtId = currentMmtId
-            stopping = true
             commands.add(stop_command)
             logError("MMT.stop sets noMmtId")
             gotMmtId(noMmtId)
             running = false
+            schedule(10L)
         }
     }
 
@@ -281,6 +277,7 @@ class MapMyTracks(val context: Context) {
     private fun transmit() {
         var command: SendCommand
         if (commands.size == 0) {
+            schedule(0L)
             return
         }
         if (is_sending()) return
@@ -298,7 +295,7 @@ class MapMyTracks(val context: Context) {
                         connectionLost = false
                         updateInterval = prefUpdateInterval
                     }
-                    setUpdateInterval()
+                    schedule()
                     if (command != commands[0]) throw IllegalStateException("response: wrong command")
                     command.sending = false
                     command.sent = true
@@ -341,7 +338,7 @@ class MapMyTracks(val context: Context) {
                                 }
                                 // double updateInterval up to 5 minutes
                                 val base = max(prefUpdateInterval, updateInterval)
-                                setUpdateInterval(min(base * 2, 300))
+                                schedule(1000L * min(base * 2, 300))
                             } else {
                                 logError( prefUrl + it.toString())
                             }
