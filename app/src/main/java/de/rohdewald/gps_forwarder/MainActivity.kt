@@ -22,6 +22,28 @@ import java.lang.System.currentTimeMillis
 // TODO: if (!PowerManager.isIgnoringBatteryOptimizations (String packageName))
 // fire intent android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS
 
+
+class SenderSingleton constructor(val context: Context) {
+    companion object {
+        @Volatile
+        private var INSTANCE: SenderSingleton? = null
+        fun getInstance(context: Context) =
+                INSTANCE ?: synchronized(this) {
+                    INSTANCE ?: SenderSingleton(context).also {
+                        INSTANCE = it
+                    }
+                }
+        fun exists() =  INSTANCE != null
+    }
+
+
+    val sender: MapMyTracks by lazy {
+        // applicationContext is key, it keeps you from leaking the
+        // Activity or BroadcastReceiver if someone passes one in.
+        MapMyTracks(context)
+    }
+}
+
 class MainActivity : AppCompatActivity(), android.location.LocationListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
 
@@ -80,6 +102,7 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
     override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {
         logGpsFix("statusChanged: provider:" + provider + " status:" + status)
     }
+
     override fun onLocationChanged(location: Location) {
         if (altitudeAsCounter) {
             location_count += 1
@@ -113,7 +136,7 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
             else
                 logGpsFix("GPS ignored: ${location.toLogString()}")
         } else {
-            logError("GPS from other source: ${location.provider} ${location.toLogString()}")
+            logError("GPS from other source ignored: ${location.provider} ${location.toLogString()}")
         }
     }
 
@@ -125,14 +148,16 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
         loggerPreferenceChanged()
         setContentView(R.layout.activity_main)
         setupLogger(logView)
-
-        sender = MapMyTracks(this)
-        sender.isEnabled = sender.hasMmtId()  // if the previous app instance was abruptly killed, just continue
+        val senderExisted = SenderSingleton.exists()
+        sender = SenderSingleton.getInstance(applicationContext).sender
         logStartStop("Activity $this new sender: $sender")
-        if (sender.isEnabled)
-            logStartStop("GPS Forwarder continuing after interruption")
-        else
-            logStartStop("GPS Forwarder started")
+        if (!senderExisted) {
+            sender.isEnabled = sender.hasMmtId()  // if the previous app instance was abruptly killed, just continue
+            if (sender.isEnabled) {
+                logStartStop("GPS Forwarder continuing after interruption")
+            } else
+                logStartStop("GPS Forwarder started")
+        }
         val manager : LocationManager? = getSystemService(Context.LOCATION_SERVICE) as LocationManager?
         if (manager == null) {
             logError("Cannot get a LocationManager")

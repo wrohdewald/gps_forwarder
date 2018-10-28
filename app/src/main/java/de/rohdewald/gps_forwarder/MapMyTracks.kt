@@ -1,5 +1,6 @@
 package de.rohdewald.gps_forwarder
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.location.Location
 import android.os.Handler
@@ -115,9 +116,9 @@ internal class SendStop(location: Location?) : SendCommand(location) {
 }
 
 
-class MapMyTracks(val mainActivity: MainActivity) {
+class MapMyTracks(val context: Context) {
 
-    private var queue: RequestQueue = Volley.newRequestQueue(mainActivity)
+    private var queue: RequestQueue = Volley.newRequestQueue(context.applicationContext)
     private var commands: MutableList<SendCommand> = mutableListOf()
     var isEnabled = false
     private var running = false
@@ -134,10 +135,10 @@ class MapMyTracks(val mainActivity: MainActivity) {
     private var updateInterval = 0L
     private var currentMmtId: String = noMmtId
     lateinit private var handler: Handler
-    lateinit var prefs: SharedPreferences
+    var prefs: SharedPreferences
 
     init {
-        prefs = PreferenceManager.getDefaultSharedPreferences(mainActivity)
+        prefs = PreferenceManager.getDefaultSharedPreferences(context)
         preferenceChanged(prefs)
         currentMmtId = prefs.getString("MmtId", noMmtId)
         running =  hasMmtId()
@@ -320,8 +321,6 @@ class MapMyTracks(val mainActivity: MainActivity) {
                         logSend(command.toLogString(answerForLog))
                     }
                     commands = commands.drop(1).toMutableList()
-                    if (!is_sending() && mainActivity.isFinishing())
-                        mainActivity.finishAndRemoveTask()
                 },
                 Response.ErrorListener {
                     // TODO: use now() - command.queueTime for log
@@ -354,8 +353,6 @@ class MapMyTracks(val mainActivity: MainActivity) {
                             }
                         }
                     }
-                    if (mainActivity.isFinishing())
-                        mainActivity.finishAndRemoveTask()
                 }) {
             override fun getParams(): MutableMap<String, String> = command.postDict()
             override fun getHeaders(): Map<String, String> = hashMapOf(
