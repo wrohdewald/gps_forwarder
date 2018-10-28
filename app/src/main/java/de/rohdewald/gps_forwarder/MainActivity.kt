@@ -148,7 +148,6 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
         setupLogger(logView)
         val senderExisted = SenderSingleton.exists()
         sender = SenderSingleton.getInstance(applicationContext).sender
-        logStartStop("Activity $this new sender: $sender")
         if (!senderExisted) {
             sender.isEnabled = sender.hasMmtId()  // if the previous app instance was abruptly killed, just continue
             if (sender.isEnabled) {
