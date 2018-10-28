@@ -119,6 +119,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
 
     private var queue: RequestQueue = Volley.newRequestQueue(mainActivity)
     private var commands: MutableList<SendCommand> = mutableListOf()
+    var isEnabled = false
     private var running = false
     private var stopping = false
     private var connectionLost = false

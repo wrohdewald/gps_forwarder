@@ -36,7 +36,6 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
     lateinit var prefs: SharedPreferences
     var prevLocationTime = 0L
     private var prevAppliedTimeDelta = 0
-    var isSenderEnabled = false
     private var currentMenu: Menu? = null
 
     fun onClickSettings(item: MenuItem) {
@@ -47,22 +46,16 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
 // TODO: nach Drehen ist StartStop Icon falsch
 
     fun onClickStart(item: MenuItem) {
-        isSenderEnabled = true
+        sender.isEnabled = true
         logStartStop("Forwarding started")
         updateActionBar()
     }
 
     fun onClickStop(item: MenuItem) {
-        isSenderEnabled = false
+        sender.isEnabled = false
         logStartStop("Forwarding stopped")
         sender.stop()
         updateActionBar()
-    }
-
-    override fun onDestroy() {
-        isSenderEnabled = false
-        sender.stop()
-        super.onDestroy()
     }
 
     fun onClickTail(item: MenuItem) {
@@ -115,7 +108,7 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
                 logError("Will add $appliedDelta days to GPS times")
                 prevAppliedTimeDelta = appliedDelta
             }
-            if (isSenderEnabled)
+            if (sender.isEnabled)
                 sender.send(location)
             else
                 logGpsFix("GPS ignored: ${location.toLogString()}")
@@ -134,9 +127,9 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
         setupLogger(logView)
 
         sender = MapMyTracks(this)
-        isSenderEnabled = sender.hasMmtId()  // if the previous app instance was abruptly killed, just continue
+        sender.isEnabled = sender.hasMmtId()  // if the previous app instance was abruptly killed, just continue
         logStartStop("Activity $this new sender: $sender")
-        if (isSenderEnabled)
+        if (sender.isEnabled)
             logStartStop("GPS Forwarder continuing after interruption")
         else
             logStartStop("GPS Forwarder started")
@@ -180,8 +173,8 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
     }
 
     private fun updateActionBar() {
-            currentMenu?.findItem(R.id.start_action)?.setVisible(!isSenderEnabled)
-            currentMenu?.findItem(R.id.stop_action)?.setVisible(isSenderEnabled)
+            currentMenu?.findItem(R.id.start_action)?.setVisible(!sender.isEnabled)
+            currentMenu?.findItem(R.id.stop_action)?.setVisible(sender.isEnabled)
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
@@ -191,11 +184,10 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
     }
 
     override fun onBackPressed() {
-        if (isSenderEnabled) {
+        if (sender.isEnabled) {
             Toast.makeText(this, "Please stop forwarding first", Toast.LENGTH_SHORT).show()
         } else {
             super.onBackPressed()
         }
     }
 }
-
