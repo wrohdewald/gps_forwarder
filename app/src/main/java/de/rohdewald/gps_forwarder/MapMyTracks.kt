@@ -137,7 +137,6 @@ class MapMyTracks(val context: Context) {
         preferenceChanged(prefs)
         currentMmtId = prefs.getString("MmtId", noMmtId)
         running =  hasMmtId()
-        logStartStop("Ich bin MapMyTracks.init mit queue $queue")
     }
 
     fun hasMmtId() = currentMmtId != noMmtId
@@ -156,7 +155,8 @@ class MapMyTracks(val context: Context) {
             schedule(10L)
         } else {
             update(location)
-            schedule()
+            if (!connectionLost)
+                    schedule()
         }
     }
 
@@ -167,21 +167,22 @@ class MapMyTracks(val context: Context) {
         // create a new currentHandler and use that one from now on. After the
         // latest event from the old currentHandler happens, it will stay silent.
         if (newInterval != updateInterval) {
-            updateInterval = newInterval
+            logSend("Changing update interval from $updateInterval to $newInterval")
             currentHandler = Handler().apply {
                 val thisHandler = this
+                updateInterval = newInterval
                 val runnable = object : Runnable {
-                    override fun run() = try {
+                    override fun run() = if (thisHandler == currentHandler) try {
                         transmit()
                     } finally {
-                        if (thisHandler == currentHandler && updateInterval > 0L) {
-                            // just let previous handlers run out when their queue is empty
-                            logSend("${currentHandler} next transmission in $updateInterval ms")
+                        if (updateInterval > 0L) {
                             postDelayed(this, updateInterval)
                         }
+                    } else {
+                        // ignore old handler events
                     }
                 }
-                post(runnable)
+                postDelayed(runnable,updateInterval)
             }
         }
     }
@@ -299,7 +300,7 @@ class MapMyTracks(val context: Context) {
                     if (connectionLost) {
                         logError("Regained connection to $prefUrl")
                         connectionLost = false
-                        updateInterval = prefUpdateInterval
+                        schedule()
                     }
                     schedule()
                     if (command != commands[0]) throw IllegalStateException("response: wrong command")
@@ -332,21 +333,28 @@ class MapMyTracks(val context: Context) {
                                 if (document != null) {
                                     var reason_item = document.getElementsByTagName("reason")
                                     if (reason_item.length != 0) {
-                                        logError(prefUrl + it.toString() + ": " + reason_item.item(0).textContent + " command:" + command.toString())
+                                        logError("$prefUrl $it: ${reason_item.item(0).textContent} command: $command")
                                     } else {
-                                        logError(prefUrl + it.toString() + "command:" + command.toString())
+                                        logError("$prefUrl $it: command $command")
                                     }
                                 }
                             } else if ("NoConnectionError" in it.toString()) {
                                 if (!connectionLost) {
-                                    logError("Lost connection to $prefUrl")
                                     connectionLost = true
+                                    if ("Connection refused" in it.toString()) {
+                                        logError("$prefUrl refused connection")
+                                    } else {
+                                        logError("Lost connection while sending $command to $prefUrl")
+                                    }
+                                } else {
+                                    logError("Connection still lost")
                                 }
-                                // double updateInterval up to 5 minutes
-                                val base = max(prefUpdateInterval, updateInterval)
-                                schedule(1000L * min(base * 2, 300))
+                                    // double updateInterval up to 5 minutes
+                                    val base = max(1000L * prefUpdateInterval, updateInterval)
+                                    schedule(min(base * 2, 300L * 1000L))
+
                             } else {
-                                logError( prefUrl + it.toString())
+                                logError("$prefUrl: $it for $command")
                             }
                         }
                     }
