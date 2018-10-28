@@ -130,10 +130,12 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
                 logError("Will add $appliedDelta days to GPS times")
                 prevAppliedTimeDelta = appliedDelta
             }
-            if (sender.isEnabled)
+            if (sender.isEnabled) {
+                logGpsFix("GPS ${location.toLogString()}")
                 sender.send(location)
-            else
+            } else {
                 logGpsFix("GPS ignored: ${location.toLogString()}")
+            }
         } else {
             logError("GPS from other source ignored: ${location.provider} ${location.toLogString()}")
         }

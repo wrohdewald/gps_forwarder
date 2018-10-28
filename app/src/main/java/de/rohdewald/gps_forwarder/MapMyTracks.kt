@@ -141,8 +141,13 @@ class MapMyTracks(val context: Context) {
 
     fun hasMmtId() = currentMmtId != noMmtId
 
+    private fun queueCommand(command: SendCommand) {
+        if (command.allLocations.size > 0 )
+            logSend("GPS queued: ${command.locationsToString()}")
+        commands.add(command)
+    }
+
     fun send(location: Location) {
-        logGpsFix("GPS forwarded: ${location.toLogString()}")
 
         if (!running) {
             running = true
@@ -192,7 +197,7 @@ class MapMyTracks(val context: Context) {
     }
 
     private fun start(location: Location) {
-        commands.add(SendStart(location))
+        queueCommand(SendStart(location))
         last_sent_location = location
         transmit()
     }
@@ -211,7 +216,7 @@ class MapMyTracks(val context: Context) {
             last_sent_location = location
             var upd_command = SendUpdate(location)
             upd_command.mmtId = currentMmtId
-            commands.add(upd_command)
+            queueCommand(upd_command)
         }
     }
 
@@ -229,7 +234,7 @@ class MapMyTracks(val context: Context) {
         if (currentMmtId != noMmtId) {
             var stop_command = SendStop(null)
             stop_command.mmtId = currentMmtId
-            commands.add(stop_command)
+            queueCommand(stop_command)
             logError("MMT.stop sets noMmtId")
             gotMmtId(noMmtId)
             running = false
