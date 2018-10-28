@@ -62,26 +62,21 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
     }
 
     override fun onDestroy() {
-        logStartStop("onDestroy")
         isSenderEnabled = false
         sender.stop()
-        // TODO: wait until sender queue is empty
-        // Android may say Activity destroy timeout.
-        // We have to catch the exit button and retard destroy()
-        // until all is sent or aborted by user.
         super.onDestroy()
     }
 
-    override fun onResume() {
-    super.onResume()
-    prefs.registerOnSharedPreferenceChangeListener(this)
-}
-
-    override fun onPause() {
-        super.onPause()
-//        prefs.unregisterOnSharedPreferenceChangeListener(this)
+    fun onClickTail(item: MenuItem) {
+        // I would want this as an extension in Logger.kt but then
+        // the inflater will not find it at runtime
+        logView.scrollToPosition(logAdapter.itemCount - 1)
     }
 
+    override fun onResume() {
+        super.onResume()
+        prefs.registerOnSharedPreferenceChangeListener(this)
+    }
 
     override fun onProviderEnabled(provider: String) {
         logGpsFix("providerEnabled:" + provider)

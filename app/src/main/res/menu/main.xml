@@ -16,6 +16,12 @@
         android:icon="@drawable/ic_media_stop_dark"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/tail_action"
+        android:icon="@drawable/ic_tail_action"
+        android:onClick="onClickTail"
+        android:title="@string/tail_action_title"
+        app:showAsAction="ifRoom" />
+    <item
         android:title="Settings"
         android:onClick="onClickSettings" />
     <item
