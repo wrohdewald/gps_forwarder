@@ -300,6 +300,7 @@ class MapMyTracks(val mainActivity: MainActivity) {
                     if (connectionLost) {
                         logError("Regained connection to $prefUrl")
                         connectionLost = false
+                        updateInterval = prefUpdateInterval
                     }
                     setUpdateInterval()
                     if (command != commands[0]) throw IllegalStateException("response: wrong command")
