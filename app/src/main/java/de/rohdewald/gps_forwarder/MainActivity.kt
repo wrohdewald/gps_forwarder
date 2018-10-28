@@ -166,6 +166,11 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
         requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), got_permission)
     }
 
+    override fun onDestroy() {
+        mLocationManager.removeUpdates(this)
+        super.onDestroy()
+    }
+
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<String>, grantResults: IntArray) {
         when (requestCode) {
