@@ -28,7 +28,7 @@ internal abstract class SendCommand(val location: Location?) {
     abstract val expect: String
     var mmtId: String = noMmtId
     val allLocations: MutableList<Location> = mutableListOf()
-    var queueTime: Date? = null
+    var queueTime = 0L
 
     abstract fun postDict(): HashMap<String, String>
     protected fun formatLocation(): String {
@@ -40,12 +40,19 @@ internal abstract class SendCommand(val location: Location?) {
         }
     }
 
+    private fun time_spent(command: SendCommand) = System.currentTimeMillis() - command.queueTime
+
     override fun toString(): String {
         moveFirstLocation()
         var result = "Command($request ${allLocations.size} points sending=$sending"
         if (mmtId != noMmtId) result += " mmtId=$mmtId"
-        return result + ")"
+        return result + ")" + durationString()
     }
+
+    fun durationString() =
+        if (queueTime > 0L)
+            " in ${System.currentTimeMillis() - queueTime}ms"
+        else ""
 
     private fun moveFirstLocation() {
         if (location != null && allLocations.size == 0)
@@ -64,7 +71,9 @@ internal abstract class SendCommand(val location: Location?) {
             "${allLocations.size} points"
         }
 
-    abstract fun toLogString(answer: String): String
+    abstract fun toLogStringCore(answer: String): String
+
+    fun toLogString(answer: String) = "${if (mmtId != noMmtId) "ID $mmtId: " else ""} ${if (answer == expect) toLogStringCore(answer) else "$this got $answer"} ${durationString()}"
 }
 
 
@@ -79,12 +88,7 @@ internal class SendStart(location: Location?) : SendCommand(location) {
             "source" to "gps_forwarder",
             "version" to "${BuildConfig.VERSION_NAME} ${BuildConfig.VERSION_CODE}",
             "points" to formatLocation())
-    override fun toLogString(answer: String): String {
-        if (mmtId != noMmtId && answer == expect)
-            return "ID $mmtId: started, ${locationsToString()} forwarded"
-        else
-            return "$this got answer $answer"
-    }
+    override fun toLogStringCore(answer: String) = "started, ${locationsToString()} forwarded"
 }
 
 internal class SendUpdate(location: Location?) : SendCommand(location) {
@@ -94,11 +98,7 @@ internal class SendUpdate(location: Location?) : SendCommand(location) {
             "request" to request,
             "activity_id" to mmtId,
             "points" to formatLocation())
-    override fun toLogString(answer: String) =
-        if (mmtId != noMmtId && answer == expect)
-            "ID $mmtId: ${locationsToString()} forwarded"
-        else
-            "$this got answer $answer"
+    override fun toLogStringCore(answer: String) = "${locationsToString()} forwarded"
 }
 
 internal class SendStop(location: Location?) : SendCommand(location) {
@@ -107,12 +107,7 @@ internal class SendStop(location: Location?) : SendCommand(location) {
     override fun postDict() = hashMapOf(
             "request" to request,
             "activity_id" to mmtId)
-    override fun toLogString(answer: String): String {
-        if (mmtId != noMmtId && answer == expect)
-            return "ID $mmtId: Forwarding stopped"
-        else
-            return "$this got answer $answer"
-    }
+    override fun toLogStringCore(answer: String) = "Forwarding stopped"
 }
 
 
@@ -323,7 +318,6 @@ class MapMyTracks(val context: Context) {
                     commands = commands.drop(1).toMutableList()
                 },
                 Response.ErrorListener {
-                    // TODO: use now() - command.queueTime for log
                     command.sending = false
                     when (it) {
                         is AuthFailureError -> {
@@ -359,6 +353,6 @@ class MapMyTracks(val context: Context) {
                     "Authorization" to "Basic " + Base64.encodeToString("$prefUsername:$prefPassword".toByteArray(Charsets.UTF_8), Base64.DEFAULT))
         }
         queue.add(request)
-        command.queueTime = Date()
+        command.queueTime = System.currentTimeMillis()
     }
 }
