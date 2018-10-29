@@ -41,6 +41,10 @@ class SenderSingleton constructor(val context: Context) {
         // Activity or BroadcastReceiver if someone passes one in.
         MapMyTracks(context)
     }
+
+    val locationManager: LocationManager? by lazy {
+        context.getSystemService(Context.LOCATION_SERVICE) as LocationManager?
+    }
 }
 
 class MainActivity : AppCompatActivity(), android.location.LocationListener, SharedPreferences.OnSharedPreferenceChangeListener {
@@ -52,7 +56,7 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
     }
 
     private val got_permission = 1234
-    lateinit private var mLocationManager: LocationManager
+    private var locationManager: LocationManager? = null
     private lateinit var sender: MapMyTracks
     lateinit var prefs: SharedPreferences
     var prevLocationTime = 0L
@@ -156,18 +160,16 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
             } else
                 logStartStop("GPS Forwarder started")
         }
-        val manager: LocationManager? = getSystemService(Context.LOCATION_SERVICE) as LocationManager?
-        if (manager == null) {
+        locationManager = SenderSingleton.getInstance(applicationContext).locationManager
+        if (locationManager == null) {
             logError("Cannot get a LocationManager")
             finishAndRemoveTask()
-        } else {
-            mLocationManager = manager
         }
         requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), got_permission)
     }
 
     override fun onDestroy() {
-        mLocationManager.removeUpdates(this)
+        locationManager?.removeUpdates(this)
         super.onDestroy()
     }
 
@@ -178,7 +180,7 @@ class MainActivity : AppCompatActivity(), android.location.LocationListener, Sha
                 // If request is cancelled, the result arrays are empty.
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     try {
-                        mLocationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0L, 0.0f, this)
+                        locationManager?.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0L, 0.0f, this)
                     } catch (e: SecurityException) {
                         logError("permission revoked?")
                     }

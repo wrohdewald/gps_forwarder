@@ -171,7 +171,7 @@ class MapMyTracks(val context: Context) {
         // create a new currentHandler and use that one from now on. After the
         // latest event from the old currentHandler happens, it will stay silent.
         if (newInterval != updateInterval) {
-            logSend("Changing update interval from $updateInterval to $newInterval")
+            logSend("Changing update interval from ${updateInterval}ms to ${newInterval}ms")
             currentHandler = Handler().apply {
                 val thisHandler = this
                 updateInterval = newInterval
